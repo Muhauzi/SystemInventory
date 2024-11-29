@@ -45,6 +45,11 @@
                         <i class="bi bi-circle"></i><span>Data Peminjaman</span>
                     </a>
                 </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('peminjaman/pengembalian') ? 'active' : '' }}" href={{route('peminjaman.pengembalian')}}>
+                        <i class="bi bi-circle"></i><span>Data Pengembalian</span>
+                    </a>
+                </li>
             </ul>
         </li>
         @endif

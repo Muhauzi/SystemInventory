@@ -6,12 +6,12 @@
                 <div class="card">
                     <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
-                        <img src="{{ asset('profileImages/'.Auth::user()->profile_image) }}" alt="profile" class="rounded-circle" width="150">
+                        <img src="{{ asset('profileImages/'.$detail->profile_image) }}" alt="profile" class="rounded-circle" width="150">
                         <h2>
                             {{ Auth::user()->name}}
                         </h2>
                         <h3>
-                            {{ Auth::user()->department     }}
+                            {{ $detail->department     }}
                         </h3>
                     </div>
                 </div>
@@ -58,14 +58,14 @@
                                 <div class="row">
                                     <div class="col-lg-3 col-md-4 label">Departement</div>
                                     <div class="col-lg-9 col-md-8">
-                                        {{ Auth::user()->department}}
+                                        {{ $detail->department}}
                                     </div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-lg-3 col-md-4 label">Phone</div>
                                     <div class="col-lg-9 col-md-8">
-                                        {{ Auth::user()->phone}}
+                                        {{ $detail->phone}}
                                     </div>
                                 </div>
 
@@ -95,7 +95,7 @@
                                     <div class="row mb-3">
                                         <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
                                         <div class="col-md-8 col-lg-9">
-                                            <img src="{{ asset('profileImages/'.Auth::user()->profile_image) }}" alt="profile" class="rounded-circle" width="150">
+                                            <img src="{{ asset('profileImages/') . $detail->profile_image }}" alt="profile" class="rounded-circle" width="150">
                                             <div class="pt-2">
                                                 <input name="foto" type="file" class="form-control" id="profileImage">
                                             </div>
@@ -111,14 +111,14 @@
                                         <div class="row mb-3">
                                             <label for="Job" class="col-md-4 col-lg-3 col-form-label">Departement</label>
                                             <div class="col-md-8 col-lg-9">
-                                                <input name="department" type="text" class="form-control" id="Job" value="{{ Auth::user()->department}}">
+                                                <input name="department" type="text" class="form-control" id="Job" value="{{ $detail->department}}">
                                             </div>
                                         </div>
 
                                         <div class="row my-3 ">
                                             <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
                                             <div class="col-md-8 col-lg-9">
-                                                <input name="phone" type="text" class="form-control" id="Phone" value="{{ Auth::user()->phone}}">
+                                                <input name="phone" type="text" class="form-control" id="Phone" value="{{ $detail->phone}}">
                                             </div>
                                         </div>
 

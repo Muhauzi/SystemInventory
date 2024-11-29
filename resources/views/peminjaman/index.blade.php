@@ -1,11 +1,15 @@
 <x-layout>
 
     <x-slot name="title">
-        Data Peminjaman
+        {{
+            $title ?? 'Data Peminjam'
+        }}
     </x-slot>
 
     <x-pagetittle>
-        Data Peminjam
+        {{
+            $title ?? 'Data Peminjam'
+        }}
     </x-pagetittle>
 
     <section>

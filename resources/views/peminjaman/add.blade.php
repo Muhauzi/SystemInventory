@@ -7,7 +7,9 @@
         Tambahkan Peminjaman
     </x-pagetittle>
 
-    <x-alert></x-alert>
+    <x-alert>
+        
+    </x-alert>
 
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('peminjaman.index') }}">

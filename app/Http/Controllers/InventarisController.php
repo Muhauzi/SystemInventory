@@ -27,6 +27,20 @@ class InventarisController extends Controller
         return view('inventaris.list', compact('inventaris', 'kategori')); // Menampilkan halaman list inventaris
     }
 
+    public function scanQR(Request $request)
+    {
+        $id_barang = $request->id_barang; // Mengambil id barang dari form
+
+        $inventaris = Inventaris::where('id_barang', $id_barang)->first(); // Mengambil data inventaris berdasarkan id barang
+
+        if (!$inventaris) { // Jika data inventaris tidak ditemukan
+            return redirect()->route('inventaris.list')
+                ->with('error', 'Barang Inventaris Tidak Ditemukan.');
+        }
+
+        return redirect()->route('inventaris.show', $inventaris->id); // Redirect ke halaman detail inventaris
+    }
+
     public function show($id)
     {
         $inventaris = Inventaris::find($id); // Mengambil data inventaris berdasarkan id
@@ -85,6 +99,7 @@ class InventarisController extends Controller
         if ($request->jumlah_barang > 1) { //pengulangan untuk membuat barang sebanyak jumlah_barang
             for ($i = 0; $i < $request->jumlah_barang; $i++) {
                 $data['id_barang'] = rand(1000, 9999); // Membuat id secara acak agar unique
+                
                 if (Inventaris::where('id_barang', $data['id_barang'])->exists()) {
                     $data['id_barang'] = rand(1000, 9999); // mengacak ulang jika id sudah ada
                 }

@@ -14,10 +14,21 @@ class PeminjamanController extends Controller
 
     public function index() // Menampilkan data peminjaman
     {
-        $peminjaman = ModelPeminjaman::all(); // Mengambil semua data peminjaman
+        $peminjaman = ModelPeminjaman::where('status', 'Dipinjam')->get(); // Mengambil semua data peminjaman
         $users = User::all();   // Mengambil semua data user
 
         return view('peminjaman.index', compact('peminjaman', 'users'));    // Menampilkan data peminjaman
+    }
+
+    public function pengembalian() // Menampilkan data pengembalian
+    {
+        $peminjaman = ModelPeminjaman::where('status', 'Dikembalikan')->get(); // Mengambil data peminjaman berdasarkan status dikembalikan
+
+        $title = 'Data Pengembalian'; // Menambahkan title
+        
+        $users = User::all();   // Mengambil semua data user
+
+        return view('peminjaman.index', compact('peminjaman', 'title', 'users')); // Menampilkan data pengembalian
     }
 
     public function show($id) // Menampilkan detail peminjaman

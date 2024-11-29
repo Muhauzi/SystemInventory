@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\DetailUsers;
 
 class KelolaUsersController extends Controller
 {
@@ -41,21 +42,27 @@ class KelolaUsersController extends Controller
         ]); // Validasi inputan
 
         $user = new User(); // Menambahkan model User
+        $detail = new DetailUsers(); // Menambahkan model DetailUsers
         $user->name = $request->name; // Menambahkan data nama dari form
         $user->email = $request->email; // Menambahkan data email dari form
         $user->password = bcrypt($request->password); // Menambahkan data password dari form
         $user->role = $request->role; // Menambahkan data role dari form
-        $user->phone = $request->phone; // Menambahkan data phone dari form
-        $user->department = $request->department; // Menambahkan data department dari form
+        $user->save(); // Menyimpan data user
+
+        $detail->user_id = $user->id; // Menambahkan data user_id dari user yang baru dibuat
+        $detail->phone = $request->phone; // Menambahkan data phone dari form
+        $detail->department = $request->department; // Menambahkan data department dari form 
+        $detail->save(); // Menyimpan data detail user
+
 
         $gambar = $request->file('profile_image'); // Menambahkan data profile_image dari form
 
         if ($gambar) {  // Jika ada gambar  
             $gambar->move('profileImages', $gambar->getClientOriginalName()); // Pindahkan gambar ke folder profileImages
-            $user->profile_image = $gambar->getClientOriginalName(); // Menambahkan data profile_image dari form
+            $detail->profile_image = $gambar->getClientOriginalName(); // Menambahkan data profile_image dari form
         }
 
-        $user->save();  // Menyimpan data user
+        $detail->save();  // Menyimpan data user
 
         return redirect()->route('kelola_user.index')->with('success', 'User berhasil ditambahkan'); // Redirect ke route kelola_user.index
     }
@@ -88,17 +95,20 @@ class KelolaUsersController extends Controller
         $user->name = $request->name; // Mengubah data nama dari form
         $user->email = $request->email; // Mengubah data email dari form
         $user->role = $request->role;       // Mengubah data role dari form
-        $user->phone = $request->phone; // Mengubah data phone dari form
-        $user->department = $request->department;    // Mengubah data department dari form
+
+        $detail = DetailUsers::where('user_id', $id)->first(); // Mengambil data detail user berdasarkan user_id
+        $detail->phone = $request->phone; // Mengubah data phone dari form
+        $detail->department = $request->department; // Mengubah data department dari form
+        $detail->save(); // Menyimpan data detail user
 
         $gambar = $request->file('profile_image'); // Mengambil data profile_image dari form
 
         if ($gambar) {
             $gambar->move('profileImages', $gambar->getClientOriginalName()); // Pindahkan gambar ke folder profileImages
-            $user->profile_image = $gambar->getClientOriginalName(); // Mengubah data profile_image dari form
+            $detail->profile_image = $gambar->getClientOriginalName(); // Mengubah data profile_image dari form
         }
 
-        $user->save(); // Menyimpan data user
+        $detail->save(); // Menyimpan data user
 
         return redirect()->route('kelola_user.index')->with('success', 'User berhasil diubah'); // Redirect ke route kelola_user.index
     }
