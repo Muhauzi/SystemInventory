@@ -52,8 +52,23 @@
                                 <td>Barang</td>
                                 <td>:</td>
                                 <td>
-                                    @foreach ($barang as $brg)
-                                        <li>{{ $brg->nama_barang }}</li>
+                                    @foreach ($detailPeminjaman as $brg)
+                                    <li>
+                                        <div class="row">
+                                            <div class="col">
+                                                {{ $brg->nama_barang }}
+                                            </div>
+                                            @if ($brg->kondisi == 'Rusak')
+                                            <div class="col">
+                                                <a href="{{ route('laporan_kerusakan.add', $brg->id) }}">
+                                                    <button class="btn btn-sm btn-danger">
+                                                        <i class="ri-error-warning-line"></i> Laporkan Kerusakan
+                                                    </button>
+                                                </a>
+                                            </div>
+                                            @endif  
+                                        </div>
+                                    </li>
                                     @endforeach
                                 </td>
                             </tr>

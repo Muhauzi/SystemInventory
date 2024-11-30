@@ -38,7 +38,7 @@ class InventarisController extends Controller
                 ->with('error', 'Barang Inventaris Tidak Ditemukan.');
         }
 
-        return redirect()->route('inventaris.show', $inventaris->id); // Redirect ke halaman detail inventaris
+        return redirect()->route('inventaris.show', $inventaris->id_barang); // Redirect ke halaman detail inventaris
     }
 
     public function show($id)

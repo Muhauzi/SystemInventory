@@ -52,6 +52,29 @@
                 </li>
             </ul>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link " data-bs-target="#tables-nav2" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-book"></i><span>Laporan</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="tables-nav2" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('peminjaman') ? 'active' : '' }}" href={{route('peminjaman.index')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Peminjaman</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('peminjaman/pengembalian') ? 'active' : '' }}" href={{route('peminjaman.pengembalian')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Pengembalian</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('laporan_kerusakan') ? 'active' : '' }}" href={{route('laporan_kerusakan.index')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Kerusakan</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
         @endif
 
         <li class="nav-heading">Pages</li>

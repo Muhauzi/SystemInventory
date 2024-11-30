@@ -7,6 +7,7 @@ use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\InventarisController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\LaporanKerusakanController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -41,10 +42,12 @@ Route::prefix('inventaris')->name('inventaris.')->middleware(['auth', 'verified'
     Route::post('/update/{id}', [InventarisController::class, 'update'])->name('update');
     Route::delete('/delete/{id}', [InventarisController::class, 'destroy'])->name('delete');
     Route::get('/qr/{id}', [InventarisController::class, 'qrCreate'])->name('qr');
+    Route::post('ScanQR', [InventarisController::class, 'scanQR'])->name('scanQR');
 })->middleware(['auth', 'verified', 'admin']);
 
 Route::prefix('peminjaman')->name('peminjaman.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/', [PeminjamanController::class, 'index'])->name('index');
+    Route::get('/pengembalian', [PeminjamanController::class, 'pengembalian'])->name('pengembalian');
     Route::get('/show/{id}', [PeminjamanController::class, 'show'])->name('show');
     Route::get('/add', [PeminjamanController::class, 'create'])->name('add');
     Route::post('/store', [PeminjamanController::class, 'store'])->name('store');
@@ -56,8 +59,14 @@ Route::prefix('peminjaman')->name('peminjaman.')->middleware(['auth', 'verified'
     Route::post('/scanReturn', [PeminjamanController::class, 'scanReturn'])->name('scanReturn');
 });
 
-Route::prefix('monitoring')->name('monitoring.')->middleware(['auth', 'verified', 'admin'])->group(function () {
-     Route::get('/', [InventarisController::class, 'monitoring'])->name('index'); 
+Route::prefix('kerusakan')->name('laporan_kerusakan.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/', [LaporanKerusakanController::class, 'index'])->name('index');
+    Route::get('/show/{id}', [LaporanKerusakanController::class, 'detailKerusakan'])->name('show');
+    Route::get('/add/{id}', [LaporanKerusakanController::class, 'formSubmitKerusakan'])->name('add');
+    Route::post('/store', [LaporanKerusakanController::class, 'submitKerusakan'])->name('store');
+    Route::get('/edit/{id}', [LaporanKerusakanController::class, 'editKerusakan'])->name('edit');
+    Route::post('/update/{id}', [LaporanKerusakanController::class, 'updateKerusakan'])->name('update');
+    Route::delete('/delete/{id}', [LaporanKerusakanController::class, 'destroyKerusakan'])->name('delete');
 });
 
 Route::prefix('kategori')->name('kategori.')->middleware(['auth', 'verified', 'admin'])->group(function () {
@@ -86,4 +95,4 @@ Route::middleware('auth')->group(function () {
     })->name('unauthorized');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

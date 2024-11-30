@@ -7,7 +7,8 @@ use App\Models\Peminjaman as ModelPeminjaman;
 use App\Models\Inventaris;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\User;
-use App\Models\DetailPeminjaman;
+use App\Models\DetailPeminjaman as ModelDetailPeminjaman;
+use App\Http\Controllers\LaporanKerusakan;
 
 class PeminjamanController extends Controller
 {
@@ -34,16 +35,15 @@ class PeminjamanController extends Controller
     public function show($id) // Menampilkan detail peminjaman
     {
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
-        $detailPeminjaman = DetailPeminjaman::where('id_peminjaman', $id)->get(); // Mengambil data detail peminjaman berdasarkan id peminjaman
-        $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get(); // Mengambil data barang berdasarkan id barang
-        $users = User::where('id', $peminjaman->id_user)->first(); // Mengambil data user berdasarkan id user
+        $detailPeminjaman = (new ModelDetailPeminjaman())->getDetail($peminjaman->id_peminjaman); // Mengambil data detail peminjaman berdasarkan id peminjaman
+        $users = User::find($peminjaman->id_user); // Mengambil data user berdasarkan id user
 
         if (!$peminjaman) { // Jika data peminjaman tidak ditemukan
             return redirect()->back()
                 ->with('error', 'Data peminjaman tidak ditemukan.');
         }
 
-        return view('peminjaman.show', compact('peminjaman', 'barang', 'users')); // Menampilkan detail peminjaman
+        return view('peminjaman.show', compact('peminjaman', 'users', 'detailPeminjaman')); // Menampilkan detail peminjaman
     }
 
     public function create() // Menampilkan form tambah peminjaman
@@ -88,7 +88,7 @@ class PeminjamanController extends Controller
         $peminjaman = ModelPeminjaman::create($data); // Menyimpan data peminjaman
 
         foreach ($id_barang_list as $id_barang) { // Looping data id_barang_list
-            DetailPeminjaman::create([ // Menyimpan data detail peminjaman
+            ModelDetailPeminjaman::create([ // Menyimpan data detail peminjaman
                 'id_peminjaman' => $peminjaman->id_peminjaman, // Menambahkan data id_peminjaman dari form
                 'id_barang' => $id_barang, // Menambahkan data id_barang dari form
             ]);
@@ -114,7 +114,7 @@ class PeminjamanController extends Controller
     public function buktiPinjam($id) // Membuat bukti peminjaman 
     {
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
-        $detailPeminjaman = DetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get(); // Mengambil data detail peminjaman berdasarkan id peminjaman
+        $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get(); // Mengambil data detail peminjaman berdasarkan id peminjaman
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
         $nama_peminjam = User::where('id', $peminjaman->id_user)->first()->name;    // Mengambil data user berdasarkan id user
 
@@ -266,7 +266,7 @@ class PeminjamanController extends Controller
     public function edit($id) // Menampilkan form edit peminjaman
     {
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
-        $detailPeminjaman = DetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();    // Mengambil data detail peminjaman berdasarkan id peminjaman
+        $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();    // Mengambil data detail peminjaman berdasarkan id peminjaman
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
         $users = User::where('id', $peminjaman->id_user)->first();  // Mengambil data user berdasarkan id user
 
@@ -287,7 +287,7 @@ class PeminjamanController extends Controller
             $peminjaman->tgl_kembali = date('Y-m-d');   // Menambahkan data tgl_kembali dari form
             $peminjaman->save();    // Menyimpan data peminjaman
 
-            $detailPeminjaman = DetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();   // Mengambil data detail peminjaman berdasarkan id peminjaman
+            $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();   // Mengambil data detail peminjaman berdasarkan id peminjaman
             $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
 
             $kondisi_barang = $request->kondisi;    // Menambahkan data kondisi dari form
