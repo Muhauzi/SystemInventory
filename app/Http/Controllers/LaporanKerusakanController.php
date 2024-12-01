@@ -31,6 +31,7 @@ class LaporanKerusakanController extends Controller
     {
         $laporan_kerusakan   = $this->ModelLaporan->getBarangKategori()->toArray();
         // dd( $laporan_kerusakan);
+        
         return view('laporan.kerusakan.index', compact('laporan_kerusakan'));
     }
 
