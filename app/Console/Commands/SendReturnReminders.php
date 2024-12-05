@@ -32,7 +32,7 @@ class SendReturnReminders extends Command
             $diff = $now->diffInDays($dueDate, false);
             if ($diff < 3) { //
                 $user = User::find($data->id_user);
-                Mail::to($user->email)->send(new ReturnReminderMail($data, $barang));   
+                Mail::to($user->email)->send(new ReturnReminderMail($data, $barang, $user));   
             }
         }
 

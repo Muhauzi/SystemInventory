@@ -18,11 +18,13 @@ class ReturnReminderMail extends Mailable
      */
     public $data;
     public $barang;
+    public $user;
 
-    public function __construct($data, $barang)
+    public function __construct($data, $barang, $user)
     {
         $this->data = $data;
         $this->barang = $barang;
+        $this->user = $user;
     }
 
     // /**
@@ -32,7 +34,7 @@ class ReturnReminderMail extends Mailable
     {
         return $this->subject('Return Reminder')
                 ->view('emails.return_reminder')
-                ->with(['data' => $this->data, 'barang' => $this->barang]);
+                ->with(['data' => $this->data, 'barang' => $this->barang, 'user' => $this->user]);
     }
 
     /**

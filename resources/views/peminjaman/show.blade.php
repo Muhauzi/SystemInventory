@@ -66,7 +66,7 @@
                                                     </button>
                                                 </a>
                                             </div>
-                                            @endif  
+                                            @endif
                                         </div>
                                     </li>
                                     @endforeach
@@ -90,17 +90,31 @@
                                     {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
                                 </td>
                             </tr>
-                            <tr>
-                                <td>Surat Bukti Peminjaman</td>
-                                <td>:</td>
-                                <td>
-                                    <a href="{{route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
-                                        <button class="btn btn-sm btn-info text-light">
-                                            <i class="ri-file-download-line"></i> Download Bukti Peminjaman
-                                        </button>
-                                    </a>
-                                </td>
-                            </tr>
+                            @if ($peminjaman->status == 'Dikembalikan')
+                                <tr>
+                                    <td>Surat Bukti Pengembalian</td>
+                                    <td>:</td>
+                                    <td>
+                                        <a href="{{route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
+                                            <button class="btn btn-sm btn-info text-light">
+                                                <i class="ri-file-download-line"></i> Download Bukti Pengembalian
+                                            </button>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @else
+                                <tr>
+                                    <td>Surat Bukti Peminjaman</td>
+                                    <td>:</td>
+                                    <td>
+                                        <a href="{{route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
+                                            <button class="btn btn-sm btn-info text-light">
+                                                <i class="ri-file-download-line"></i> Download Bukti Peminjaman
+                                            </button>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endif
                         </table>
                         <div class="d-flex justify-content-end ">
                             <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}">

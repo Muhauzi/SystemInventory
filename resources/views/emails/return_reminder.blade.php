@@ -7,8 +7,20 @@
 </head>
 <body>
 <h1>Reminder: Upcoming Return Due</h1>
-    <p>Dear User,</p>
-    <p>This is a reminder that your loaned item <strong>Barang</strong> is due to be returned on <strong>{{ $data->tanggal_tenggat }}</strong>.</p>
+    <p>Dear {{ $user->name }},</p>
+    @if (!$data)
+        <p>There is no data available.</p>
+    @endif
+    <p>This is a reminder that your loaned item is due to be returned on <strong>{{ $data->tgl_tenggat }}</strong>.</p>
+    <p>Item Details:</p>
+    <ul>
+        @foreach ($barang as $item)
+            <li>{{ $item->id_barang }} - {{ $item->nama_barang }}</li>
+        @endforeach     
+    </ul>
+    @if (!$barang)
+        <p>There is no item available.</p>
+    @endif
     <p>Please return it on or before the due date.</p>
 </body>
 </html>
