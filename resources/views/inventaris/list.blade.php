@@ -93,6 +93,7 @@
                                             <form id="delete-form-{{ $item->id_barang }}" action="{{ route('inventaris.delete', $item->id_barang) }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
+                                                <input type="hidden" name="id_kategori" value="{{ $item->id_kategori }}">
                                                 <button type="button" class="btn btn-danger btn-sm" title="Hapus" onclick="confirmDelete('{{ $item->id_barang }}')">
                                                     <i class="ri-delete-bin-5-line"></i>
                                                 </button>
@@ -112,7 +113,7 @@
         </div>
     </section>
     <script>
-        function confirmDelete() {
+        function confirmDelete(id) {
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -123,7 +124,6 @@
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-
                     document.getElementById('delete-form-' + id).submit();
                 }
             })

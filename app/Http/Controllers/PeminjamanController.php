@@ -26,7 +26,7 @@ class PeminjamanController extends Controller
         $peminjaman = ModelPeminjaman::where('status', 'Dikembalikan')->get(); // Mengambil data peminjaman berdasarkan status dikembalikan
 
         $title = 'Data Pengembalian'; // Menambahkan title
-        
+
         $users = User::all();   // Mengambil semua data user
 
         return view('peminjaman.index', compact('peminjaman', 'title', 'users')); // Menampilkan data pengembalian
@@ -99,7 +99,7 @@ class PeminjamanController extends Controller
 
 
 
-        return redirect()->route('peminjaman.index') 
+        return redirect()->route('peminjaman.index')
             ->with('success', 'Data peminjaman berhasil ditambahkan.'); // Redirect ke route peminjaman.index
     }
 
@@ -138,11 +138,19 @@ class PeminjamanController extends Controller
         $section = $phpWord->addSection(); // Menambahkan section
 
         // Tambahkan judul dokumen
-        $section->addText( // Menambahkan text
-            'INVOICE PEMINJAMAN BARANG INVENTARIS', 
-            ['name' => 'Arial', 'size' => 16, 'bold' => true],
-            ['align' => 'center']
-        );
+        if ($peminjaman->status == 'Dipinjam') { // Jika status peminjaman dipinjam
+            $section->addText( // Menambahkan text
+                'INVOICE PEMINJAMAN BARANG INVENTARIS',
+                ['name' => 'Arial', 'size' => 16, 'bold' => true],
+                ['align' => 'center']
+            );
+        } else {
+            $section->addText( // Menambahkan text
+                'INVOICE PENGEMBALIAN BARANG INVENTARIS',
+                ['name' => 'Arial', 'size' => 16, 'bold' => true],
+                ['align' => 'center']
+            );
+        }
 
         // Tambahkan jarak setelah judul
         $section->addTextBreak(1);
@@ -248,8 +256,13 @@ class PeminjamanController extends Controller
         $cell3->addText("__________________", ['name' => 'Arial', 'size' => 10]);
 
 
-        $filename = 'InvoicePeminjaman_' . $peminjaman->id_peminjaman . '.docx';
-        $path = storage_path('app/public/bukti_peminjaman/' . $filename);
+        if ($peminjaman->status == 'Dipinjam') { // Jika status peminjaman dipinjam
+            $filename = 'InvoicePeminjaman_' . $peminjaman->id_peminjaman . '.docx';
+            $path = storage_path('app/public/bukti_peminjaman/' . $filename);
+        } else {
+            $filename = 'InvoicePengembalian_' . $peminjaman->id_peminjaman . '.docx';
+            $path = storage_path('app/public/bukti_pengembalian/' . $filename);
+        }
 
         if (!file_exists(dirname($path))) {
             mkdir(dirname($path), 0777, true);
@@ -297,7 +310,7 @@ class PeminjamanController extends Controller
                     if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang') {   // Jika kondisi barang rusak atau hilang
                         $brg->status_barang = 'Tidak Tersedia'; // Menambahkan data status_barang dari form
                     } else {
-                        $brg->status_barang = 'Tersedia'; 
+                        $brg->status_barang = 'Tersedia';
                     }
                     $brg->save();
                 }

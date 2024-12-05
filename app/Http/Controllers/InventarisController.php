@@ -245,7 +245,7 @@ class InventarisController extends Controller
             ->with('success', 'Barang Inventaris Berhasil Diubah.');
     }
 
-    public function destroy($id) // Fungsi untuk menghapus data barang
+    public function destroy(Request $request, $id) // Fungsi untuk menghapus data barang
     {
         $inventaris = Inventaris::find($id);  // Mengambil data inventaris berdasarkan id
 
@@ -261,10 +261,11 @@ class InventarisController extends Controller
                 unlink($path); // Menghapus gambar
             }
         }
+        $kategori = $request->id_kategori; // Mengambil id kategori barang
 
         $inventaris->delete(); // Menghapus data inventaris dari database
 
-        return redirect()->route('inventaris.list') // Redirect ke halaman list barang
+        return redirect()->route('inventaris.list', $kategori) // Redirect ke halaman list barang
             ->with('success', 'Barang Inventaris Berhasil Dihapus.');
     }
 
