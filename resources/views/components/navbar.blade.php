@@ -50,14 +50,19 @@
                         <i class="bi bi-circle"></i><span>Data Pengembalian</span>
                     </a>
                 </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('listPerizinan') ? 'active' : '' }}" href="{{route('peminjaman.listPerizinan')}}">
+                        <i class="bi bi-circle"></i><span>Izin Peminjaman</span>
+                    </a>
+                </li>       
             </ul>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link " data-bs-target="#tables-nav2" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-book"></i><span>Laporan</span><i class="bi bi-chevron-down ms-auto"></i>
+            <a class="nav-link " data-bs-target="#tables-nav21" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-file-text"></i><span>Laporan</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="tables-nav2" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+            <ul id="tables-nav21" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
                 <li>
                     <a class="nav-link collapsed {{ request()->is('peminjaman') ? 'active' : '' }}" href={{route('peminjaman.index')}}>
                         <i class="bi bi-circle"></i><span>Laporan Peminjaman</span>
@@ -76,8 +81,41 @@
             </ul>
         </li>
         @endif
+        @if (auth()->user()->role == 'pimpinan')
+        <li class="nav-item">
+            <a class="nav-link" data-bs-target="#tables-nav3" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-file-text"></i><span>Laporan</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="tables-nav3" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('peminjaman') ? 'active' : '' }}" href={{route('peminjaman.index')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Peminjaman</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('peminjaman/pengembalian') ? 'active' : '' }}" href={{route('peminjaman.pengembalian')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Pengembalian</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link collapsed {{ request()->is('laporan_kerusakan') ? 'active' : '' }}" href={{route('laporan_kerusakan.index')}}>
+                        <i class="bi bi-circle"></i><span>Laporan Kerusakan</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
-        <li class="nav-heading">Pages</li>
+        <li class="nav-item">
+            <a class="nav-link collapsed {{ request()->is('izin_peminjaman') ? 'active' : '' }}" href="{{route('pimpinan.izin_peminjaman')}}">
+                <i class="bi bi-clipboard-check"></i><span>Izin Peminjaman</span>
+            </a>    
+        </li>   
+
+        @endif
+
+
+
+        <li class="nav-heading">General</li>
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{ route('user.profile') }}">
@@ -97,37 +135,6 @@
                 <i class="bi bi-circle"></i><span>Riwayat Pengembalian</span>
             </a>
         </li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="pages-faq.html">
-                <i class="bi bi-question-circle"></i>
-                <span>F.A.Q</span>
-            </a>
-        </li><!-- End F.A.Q Page Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="pages-contact.html">
-                <i class="bi bi-envelope"></i>
-                <span>Contact</span>
-            </a>
-        </li><!-- End Contact Page Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="pages-register.html">
-                <i class="bi bi-card-list"></i>
-                <span>Register</span>
-            </a>
-        </li><!-- End Register Page Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="pages-login.html">
-                <i class="bi bi-box-arrow-in-right"></i>
-                <span>Login</span>
-            </a>
-        </li><!-- End Login Page Nav -->
-
-        <!-- End Blank Page Nav -->
-
     </ul>
 
 </aside>

@@ -89,8 +89,7 @@ class UsersController extends Controller
 
     public function riwayatPeminjaman()   // Menampilkan riwayat peminjaman user
     {
-        $peminjaman = Peminjaman::where('id_user', Auth::user()->id)->get();    // Mengambil data peminjaman berdasarkan id user
-
+        $peminjaman = Peminjaman::where('status', 'Dipinjam')->where('id_user', Auth::user()->id)->get(); // Mengambil data peminjaman berdasarkan status dan id user
         return view('user.riwayatPeminjaman', compact('peminjaman'));       
     }
 

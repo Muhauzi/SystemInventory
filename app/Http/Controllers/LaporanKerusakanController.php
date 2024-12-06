@@ -88,5 +88,7 @@ class LaporanKerusakanController extends Controller
         return redirect()->route('peminjaman.index');
     }
 
+    
+
 
 }

@@ -29,6 +29,19 @@ class LaporanKerusakan extends Model
         return $kategori;
     }
 
+    public function getLaporanKerusakan()
+    {
+        $data = DB::table('laporan_kerusakan')
+            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'peminjaman.*', 'users.*', 'kategori_barang.*')
+            ->get();
+        return $data;
+    }
+
     public function getDetailKerusakan($id)
     {
         $data = DB::table('laporan_kerusakan')

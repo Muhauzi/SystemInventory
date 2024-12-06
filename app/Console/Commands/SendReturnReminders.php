@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class SendReturnReminders extends Command
 {
@@ -23,21 +24,28 @@ class SendReturnReminders extends Command
 
     public function handle()
     {
+        Log::info('send:return-reminders command started.');
         $peminjaman = Peminjaman::where('status', 'Dipinjam')->get();
         $detail = new DetailPeminjaman();
         $now = Carbon::now();
         foreach ($peminjaman as $data) {
             $dueDate = Carbon::parse($data->tanggal_tenggat);
             $barang = $detail->getDetail($data->id_peminjaman);
+            $tenggat = $data->tgl_tenggat;  
+            $now = $now->startOfDay(); // Set $now ke awal hari
+            $dueDate = Carbon::parse($tenggat)->startOfDay(); // Set $dueDate ke awal hari
+
             $diff = $now->diffInDays($dueDate, false);
-            if ($diff < 3) { //
+            $this->info("Tanggal sekarang: {$now}, Tanggal tenggat: {$dueDate}, Selisih hari: {$diff} untuk peminjaman ID: {$data->id_peminjaman}");
+            if ($diff <= 3) {
                 $user = User::find($data->id_user);
-                Mail::to($user->email)->send(new ReturnReminderMail($data, $barang, $user));   
+                Mail::to($user->email)->send(new ReturnReminderMail($data, $barang, $user));
+                $this->info("Email dikirim ke: {$user->email}");
+            }
+            else {
+                $user = User::find($data->id_user);
+                $this->info("Email tidak dikirim ke: {$user->email}");
             }
         }
-
-        $this->info('Return reminders have been sent successfully to ' . count($peminjaman) . ' users');
     }
-
-
 }

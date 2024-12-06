@@ -17,6 +17,11 @@ class DetailUsers extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        $data = $this->table('users_detail')
+            ->join('users', 'users_detail.user_id', '=', 'users.id')
+            ->where('users.role', '!=', 'admin')
+            ->select('users_detail.*', 'users.*')
+            ->get();
+        return $data;
     }
 }

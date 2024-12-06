@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('tagihan_kerusakan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_laporan_kerusakan')->constrained('laporan_kerusakan', 'id');
+            $table->foreignId('id_laporan_kerusakan')->constrained('laporan_kerusakan', 'id')->onDelete('cascade');
+            $table->string('status');
             $table->integer('total_tagihan');
-            $table->text('bukti_pembayaran')->nullable();
-            $table->enum('status', ['pending', 'paid', 'rejected'])->default('pending');
-            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }

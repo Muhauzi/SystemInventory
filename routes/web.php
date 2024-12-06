@@ -8,6 +8,7 @@ use App\Http\Controllers\InventarisController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\LaporanKerusakanController;
+use App\Http\Controllers\AtasanController;  
 
 Route::get('/', function () {
     return view('auth.login');
@@ -47,6 +48,7 @@ Route::prefix('inventaris')->name('inventaris.')->middleware(['auth', 'verified'
 
 Route::prefix('peminjaman')->name('peminjaman.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/', [PeminjamanController::class, 'index'])->name('index');
+    Route::get('/listPerizinan', [PeminjamanController::class, 'listPerizinan'])->name('listPerizinan');
     Route::get('/pengembalian', [PeminjamanController::class, 'pengembalian'])->name('pengembalian');
     Route::get('/show/{id}', [PeminjamanController::class, 'show'])->name('show');
     Route::get('/add', [PeminjamanController::class, 'create'])->name('add');
@@ -87,6 +89,15 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'verified',])->group(f
     Route::get('/riwayat_peminjaman', [UsersController::class, 'riwayatPeminjaman'])->name('riwayat_peminjaman');
     Route::get('/riwayat_peminjaman/{id}', [UsersController::class, 'detailPeminjaman'])->name('detail_peminjaman');
     Route::get('/buktiPinjam/{id}', [PeminjamanController::class, 'buktiPinjam'])->name('buktiPinjam');
+});
+
+Route::prefix('pimpinan')->name('pimpinan.')->middleware(['auth', 'verified', 'pimpinan'])->group(function () {
+    Route::get('/list_pegawai', [AtasanController::class, 'listPegawai'])->name('list_pegawai');
+    Route::get('/detail_pegawai/{id}', [AtasanController::class, 'detailPegawai'])->name('detail_pegawai');
+    Route::get('/izin_peminjaman', [AtasanController::class, 'izinPeminjamanInventaris'])->name('izin_peminjaman');
+    Route::get('/izin_peminjaman/{id}', [AtasanController::class, 'detailIzinPeminjamanInventaris'])->name('detail_izin');
+    Route::post('/update_izin/{id}', [AtasanController::class, 'updateIzinPeminjamanInventaris'])->name('update_izin');
+    Route::get('/download_laporan_kerusakan', [AtasanController::class, 'downloadLaporanKerusakan'])->name('download_laporan_kerusakan');
 });
 
 Route::middleware('auth')->group(function () {

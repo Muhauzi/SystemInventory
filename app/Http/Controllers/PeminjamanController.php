@@ -46,6 +46,14 @@ class PeminjamanController extends Controller
         return view('peminjaman.show', compact('peminjaman', 'users', 'detailPeminjaman')); // Menampilkan detail peminjaman
     }
 
+    public function listPerizinan() // Menampilkan data perizinan
+    {
+        $peminjaman = ModelPeminjaman::whereIn('status', ['Pending', 'Disetujui'])->get(); // Mengambil data peminjaman berdasarkan status pending atau disetujui
+        $users = User::all();   // Mengambil semua data user
+
+        return view('peminjaman.list-perizinan', compact('peminjaman', 'users')); // Menampilkan data perizinan
+    }
+
     public function create() // Menampilkan form tambah peminjaman
     {
         $inventaris = Inventaris::where('status_barang', 'Tersedia')->get(); // Mengambil data inventaris yang status barangnya tersedia
@@ -97,7 +105,18 @@ class PeminjamanController extends Controller
             ]);
         }
 
+        $detailModel = new ModelDetailPeminjaman(); // Menambahkan data detailModel
+        $detailPeminjaman = $detailModel->getDetail($peminjaman->id_peminjaman); // Mengambil data detail peminjaman berdasarkan id peminjaman
+        $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
+        $nilaiBarangDipinjam = $barang->sum('harga_barang'); // Menjumlahkan nilai barang yang dipinjam
 
+        if ($nilaiBarangDipinjam > 10000000) { // Jika nilai barang yang dipinjam lebih dari 10000000
+            $data['status'] = 'Pending'; // Menambahkan data status dari form
+            $peminjaman->update($data); // Mengupdate data peminjaman
+
+            return redirect()->route('peminjaman.index')
+                ->with('success', 'Data peminjaman berhasil ditambahkan. Menunggu persetujuan atasan.'); // Redirect ke route peminjaman.index
+        }
 
         return redirect()->route('peminjaman.index')
             ->with('success', 'Data peminjaman berhasil ditambahkan.'); // Redirect ke route peminjaman.index
@@ -324,7 +343,15 @@ class PeminjamanController extends Controller
             }
             return redirect()->route('peminjaman.index')
                 ->with('success', 'Data peminjaman berhasil diubah.');
-        } else {
+        } 
+        elseif ($status == 'Dipinjam') { // Jika status peminjaman disetujui
+            $peminjaman->status = $status;  // Menambahkan data status dari form
+            $peminjaman->save();    // Menyimpan data peminjaman
+
+            return redirect()->route('peminjaman.listPerizinan')
+                ->with('success', 'Data peminjaman berhasil diubah.');
+        }
+        else {
             return redirect()->back()
                 ->with('error', 'Status peminjaman tidak valid.');
         }

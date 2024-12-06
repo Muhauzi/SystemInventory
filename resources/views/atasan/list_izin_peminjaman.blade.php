@@ -1,18 +1,20 @@
 <x-layout>
 
     <x-slot name="title">
-        Data Pinjam
+        {{
+            $title ?? 'Izin Peminjaman'
+        }}
     </x-slot>
 
     <x-pagetittle>
-        Data Pinjam
+        {{
+            $title ?? 'Izin Peminjaman'
+        }}
     </x-pagetittle>
 
     <section>
         <div class="container mx-auto px-4 sm:px-8">
             <div class="py-8">
-                <x-alert></x-alert>
-
                 <div class="my-2 flex sm:flex-row flex-col">
                     <div class="block relative">
                         <div class="table-responsive">
@@ -28,33 +30,28 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($peminjaman as $item)
+                                    @foreach ($dataPeminjaman as $item)
                                     <tr>
                                         <th scope="row">{{ $item->id_peminjaman }}</th>
                                         <td>
-                                            {{
-                                                Auth::user()->name
-                                            }}
+                                            @foreach ($users as $user)
+                                            @if ($user->id == $item->id_user)
+                                            {{ $user->name }}
+                                            @endif
+                                            @endforeach
                                         </td>
                                         <td>{{ $item->tgl_pinjam }}</td>
-                                        <td>{{ $item->tgl_kembali ?? '-' }}</td>
+                                        <td>{{ $item->tgl_kembali ?? 'Belum Dikembalikan' }}</td>
                                         <td>
-                                            @if ($item->status == ['Pending', 'Dipinjam'])
-                                            <span class="badge bg-warning">Dipinjam</span>
-                                            @elseif ($item->status == 'Dikembalikan')
-                                            <span class="badge bg-success">Dikembalikan</span>
-                                            @else
-                                            <span class="badge bg-danger">
-                                                {{$item->status}}
+                                            <span class="badge bg-warning">
+                                                {{ $item->status }}
                                             </span>
-                                            @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('user.detail_peminjaman', $item->id_peminjaman) }}">
-                                                <button type="button" class="btn btn-info btn-sm" title="Detail">
-                                                    <i class="ri-eye-fill"></i>
-                                                </button>
-                                            </a>
+                                            <a href="{{ route('pimpinan.detail_izin', $item->id_peminjaman) }}"
+                                                class="btn btn-sm btn-info">    
+                                                <i class="ri-eye-fill"></i>     
+                                            </a>  
                                         </td>
                                     </tr>
                                     @endforeach

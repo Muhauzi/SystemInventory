@@ -16,7 +16,7 @@ class Pimpinan
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->user()->role !== 'pimpinan') {
-            return response('Unauthorized.', 401);
+            return response('Unauthorized. Only Pimpinan', 401);
         }
         return $next($request);
     }

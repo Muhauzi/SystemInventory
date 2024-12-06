@@ -82,7 +82,6 @@ class InventarisController extends Controller
             return redirect()->back()
                 ->with('error', 'Gambar barang gagal diupload.');
         }
-
         $namaGambar = basename($gambar);
 
         $data = [

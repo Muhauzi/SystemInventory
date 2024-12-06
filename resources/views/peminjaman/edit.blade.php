@@ -26,13 +26,13 @@
                     </div>
                     <div class="card-body mt-2">
                         @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                         @endif
                         <form method="POST" id="formEdit" action="{{ route('peminjaman.update', $peminjaman->id_peminjaman) }}">
                             @csrf
@@ -71,7 +71,7 @@
                                     <td>:</td>
                                     <td>
                                         @foreach ($barang as $brg)
-                                            <li>{{ $brg->nama_barang }}</li>
+                                        <li>{{ $brg->nama_barang }}</li>
                                         @endforeach
                                     </td>
                                 </tr>
@@ -79,10 +79,19 @@
                                     <td>Status</td>
                                     <td>:</td>
                                     <td>
+                                        @if ($peminjaman->status == 'Dikembalikan')
+                                        <span class="badge bg-success">
+                                            {{ $peminjaman->status }}
+                                        </span>
+                                        @else
                                         <select class="form-select" name="status">
+                                            @if ($peminjaman->status == 'Disetujui')
                                             <option value="Dipinjam" {{ $peminjaman->status == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                            @elseif ($peminjaman->status == 'Dipinjam') 
                                             <option value="Dikembalikan" {{ $peminjaman->status == 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                                            @endif
                                         </select>
+                                        @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -90,14 +99,14 @@
                                     <td>:</td>
                                     <td>
                                         @foreach ($barang as $brg)
-                                            <div class="mb-2">
-                                                <label>{{ $brg->nama_barang }}</label>
-                                                <select class="form-select" name="kondisi[{{ $brg->id_barang }}]">
-                                                    <option value="Baik" {{ $brg->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
-                                                    <option value="Rusak" {{ $brg->kondisi == 'Rusak' ? 'selected' : '' }}>Rusak</option>
-                                                    <option value="Hilang" {{ $brg->kondisi == 'Hilang' ? 'selected' : '' }}>Hilang</option>
-                                                </select>
-                                            </div>
+                                        <div class="mb-2">
+                                            <label>{{ $brg->nama_barang }}</label>
+                                            <select class="form-select" name="kondisi[{{ $brg->id_barang }}]">
+                                                <option value="Baik" {{ $brg->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
+                                                <option value="Rusak" {{ $brg->kondisi == 'Rusak' ? 'selected' : '' }}>Rusak</option>
+                                                <option value="Hilang" {{ $brg->kondisi == 'Hilang' ? 'selected' : '' }}>Hilang</option>
+                                            </select>
+                                        </div>
                                         @endforeach
                                     </td>
                                 </tr>
