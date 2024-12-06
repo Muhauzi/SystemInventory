@@ -47,5 +47,16 @@ class DetailPeminjaman extends Model
         return $data;
     }
 
+    public function getPeminjam($id)
+    {
+        $data = DB::table('detail_peminjaman')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->select('detail_peminjaman.*', 'peminjaman.*', 'users.*', 'users.id as id_user')
+            ->where('detail_peminjaman.id', $id)
+            ->get();
+        return $data;
+    }
+
 
 }

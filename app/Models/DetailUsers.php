@@ -9,6 +9,7 @@ class DetailUsers extends Model
     protected $table = 'users_detail';
     protected $fillable = [
         'user_id',
+        'about',
         'phone',
         'department',
         'profile_image',

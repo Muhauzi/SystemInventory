@@ -29,4 +29,9 @@ class Inventaris extends Model
     {
         return $this->where('status', 1)->get();
     }
+
+    public function getNamaBarang($id)
+    {
+        return $this->where('id_barang', $id)->first();
+    }
 }

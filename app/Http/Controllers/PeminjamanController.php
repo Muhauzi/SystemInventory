@@ -292,9 +292,6 @@ class PeminjamanController extends Controller
 
         return response()->download($path);
     }
-
-
-
     public function edit($id) // Menampilkan form edit peminjaman
     {
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id

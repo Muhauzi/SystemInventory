@@ -69,6 +69,7 @@ Route::prefix('kerusakan')->name('laporan_kerusakan.')->middleware(['auth', 'adm
     Route::get('/edit/{id}', [LaporanKerusakanController::class, 'editKerusakan'])->name('edit');
     Route::post('/update/{id}', [LaporanKerusakanController::class, 'updateKerusakan'])->name('update');
     Route::delete('/delete/{id}', [LaporanKerusakanController::class, 'destroyKerusakan'])->name('delete');
+    Route::post('/storeTagihan', [LaporanKerusakanController::class, 'storeTagihan'])->name('storeTagihan');
 });
 
 Route::prefix('kategori')->name('kategori.')->middleware(['auth', 'verified', 'admin'])->group(function () {

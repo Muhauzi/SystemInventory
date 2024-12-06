@@ -13,11 +13,6 @@ return new class extends Migration
     {
         Schema::create('tagihan_kerusakan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_laporan_kerusakan')->constrained('laporan_kerusakan', 'id')->onDelete('cascade');
-            $table->string('status');
-            $table->integer('total_tagihan');
-            $table->string('token');
-            $table->string('payment_url');
             $table->timestamps();
         });
     }

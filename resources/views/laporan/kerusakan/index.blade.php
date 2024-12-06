@@ -25,7 +25,8 @@
                                         <th>Nama Barang</th>
                                         <th>Kategori</th>
                                         <th>Biaya Perbaikaan</th>
-                                        <th>Status</th>
+                                        <th>Status Pembayaran</th>
+                                        <th>Status Barang</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -35,15 +36,84 @@
                                         <td>{{ $lk->id }}</td>
                                         <td>{{ $lk->nama_barang }}</td>
                                         <td>{{ $lk->nama_kategori }}</td>
-                                        <td>-</td>
                                         <td>
-                                            @if ($lk->kondisi == 'Diperbaiki')
-                                            <span class="badge bg-success">Diperbaiki</span>
-                                            @elseif ($lk->kondisi == 'Sedang Diperbaiki')
-                                            <span class="badge bg-warning">Sedang Diperbaiki</span>
+                                            @php
+                                                $tagihanFound = false;
+                                            @endphp
+                                            @foreach ($tagihan as $t)
+                                                @if ($t->id_laporan_kerusakan == $lk->id)
+                                                Rp{{ number_format($t->total_tagihan, 0, ',', '.') }} 
+                                                @php
+                                                    $tagihanFound = true;
+                                                @endphp
+                                                @break
+                                                @endif
+                                            @endforeach
+                                            @if (!$tagihanFound)
+                                                <div class="makeTagihan">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                                        data-bs-target="#modalTagihan">
+                                                        Buat Tagihan
+                                                    </button>
+                                                    <!-- modal tagihan -->
+                                                    <div class="modal fade" id="modalTagihan" tabindex="-1" aria-labelledby="exampleModalLabel"
+                                                        aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="exampleModalLabel">Buat Tagihan</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                        aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <form action="{{ route('laporan_kerusakan.storeTagihan') }}" method="POST">
+                                                                        @csrf
+                                                                        <div class="mb-3">
+                                                                            <input type="hidden" name="id_lk" value="{{ $lk->id }}">
+                                                                            <label for="biaya_perbaikan" class="form-label">Biaya Perbaikan</label>
+                                                                            <input type="number" class="form-control" id="biaya_perbaikan"
+                                                                                name="biaya_perbaikan" required>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <button type="submit" class="btn btn-primary">Simpan</button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @php
+                                                $tagihanFound = false;
+                                            @endphp
+                                            @foreach ($tagihan as $t)
+                                                @if ($t->id_laporan_kerusakan == $lk->id)
+                                                    @if ($t->status == 'capture' || $t->status == 'settlement')
+                                                        <span class="badge bg-success">Lunas</span> 
+                                                    @elseif ($t->status == 'pending')
+                                                        <span class="badge bg-warning">Menunggu Pembayaran</span>
+                                                    @else
+                                                        <span class="badge bg-danger">{{ $t->status }}</span>
+                                                    @endif
+                                                    @php
+                                                        $tagihanFound = true;
+                                                    @endphp
+                                                    @break
+                                                @endif
+                                            @endforeach
+                                        </td>
+                                        <td>
+                                            @if ($lk->kondisi == 'Baik')
+                                            <span class="badge bg-success">Telah Diperbaiki</span>
+                                            @elseif ($lk->kondisi == 'Dalam Perbaikan')
+                                            <span class="badge bg-warning">Dalam Perbaikan</span>
                                             @else
                                             <span class="badge bg-danger">Rusak</span>
                                             @endif
+                                        </td>
                                         <td>
                                             <a href="{{ route('laporan_kerusakan.show', $lk->id) }}">
                                                 <button type="button" class="btn btn-info btn-sm" title="Detail">

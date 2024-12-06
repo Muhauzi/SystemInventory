@@ -59,13 +59,20 @@
                                 <td>Status</td>
                                 <td>:</td>
                                 <td>
-                                    @if ($laporan_kerusakan->status == 'Diperbaiki')
-                                    <span class="badge bg-success">Diperbaiki</span>
-                                    @elseif ($laporan_kerusakan->status == 'Sedang Diperbaiki')
-                                    <span class="badge bg-warning">Sedang Diperbaiki</span>
-                                    @else
-                                    <span class="badge bg-danger">Rusak</span>
-                                    @endif
+                                    <div class="row">
+                                        <div class="col">
+                                            @if ($laporan_kerusakan->kondisi == 'Baik')
+                                            <span class="badge bg-success">Telah Diperbaiki</span>
+                                            @elseif ($laporan_kerusakan->kondisi == 'Dalam Perbaikan')
+                                            <span class="badge bg-warning">Dalam Perbaikan</span>
+                                            @else
+                                            <span class="badge bg-danger">Rusak</span>
+                                            @endif
+                                        </div>
+                                        <div class="col">
+
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
@@ -79,14 +86,26 @@
                                 <td>Biaya Perbaikan</td>
                                 <td>:</td>
                                 <td>
-                                    
+                                    @if ($tagihan->total_tagihan != null)
+                                    Rp. {{ number_format($tagihan->total_tagihan) }}
+                                    @else
+                                    -
+                                    @endif
                                 </td>
                             </tr>
                             <tr>
-                                <td>Tanggal Selesai</td>
+                                <td>Status Tagihan</td>
                                 <td>:</td>
                                 <td>
-                                    
+                                    @if ($tagihan->status == null)
+                                    <span class="badge bg-warning">Belum Dibuat</span>
+                                    @elseif ($tagihan->status == 'Belum Lunas')
+                                    <span class="badge bg-warning">Belum Lunas</span>
+                                    @elseif ($tagihan->status == 'capture' || $tagihan->status == 'settlement')
+                                    <span class="badge bg-success">Lunas</span>
+                                    @else
+                                    <span class="badge bg-danger">{{ $tagihan->status }}</span>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
@@ -110,5 +129,5 @@
             </div>
         </div>
     </div>
-    @endforeach 
+    @endforeach
 </x-layout>
