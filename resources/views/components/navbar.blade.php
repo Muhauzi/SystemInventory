@@ -131,8 +131,8 @@
         </li>
 
         <li>
-            <a class="nav-link collapsed {{ request()->is('user/riwayat_pengembalian') ? 'active' : '' }}" href="">
-                <i class="bi bi-circle"></i><span>Riwayat Pengembalian</span>
+            <a class="nav-link collapsed {{ request()->is('user/TagihanKerusakan') ? 'active' : '' }}" href="{{ route('user.TagihanKerusakan') }}">
+                <i class="bi bi-cash-coin"></i><span>Tagihan Kerusakan</span>
             </a>
         </li>
     </ul>

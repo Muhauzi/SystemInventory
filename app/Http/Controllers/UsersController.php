@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Peminjaman;
+use App\Models\TagihanKerusakan;
 use App\Models\detailPeminjaman;
 use App\Models\Inventaris;
 use App\Models\DetailUsers;
@@ -100,5 +101,15 @@ class UsersController extends Controller
         }
 
         return view('user.detailPeminjaman', compact('peminjaman', 'detailPeminjaman', 'barang', 'users'));
+    }
+
+    public function listTagihanKerusakan()
+    {
+        $modelTagihan = new TagihanKerusakan();
+        $id = Auth::user()->id;
+        $tagihan = $modelTagihan->getTagihanKerusakanByUserId($id);
+        // dd($tagihan);
+
+        return view('user.tagihanKerusakan', compact('tagihan'));
     }
 }

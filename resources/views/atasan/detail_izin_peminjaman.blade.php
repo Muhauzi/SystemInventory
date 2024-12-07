@@ -9,6 +9,18 @@
 
     <x-alert></x-alert>
 
+    <div class="pagetitle">
+        <h1>Profile</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Menu Pimpinan</li>
+                <li class="breadcrumb-item">Detail Izin Peminjaman</li>
+                <li class="breadcrumb-item active">{{ $users->name }}</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('peminjaman.index') }}">
             <button type="button" class="btn btn-primary my-2 btn-icon-text">

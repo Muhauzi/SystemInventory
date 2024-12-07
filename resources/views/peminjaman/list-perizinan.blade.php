@@ -6,11 +6,16 @@
         }}
     </x-slot>
 
-    <x-pagetittle>
-        {{
-            $title ?? 'Data Peminjam'
-        }}
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>List Izin Peminjaman</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Peminjaman</li>
+                <li class="breadcrumb-item active">List Izin Peminjaman</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <section>
         <div class="container mx-auto px-4 sm:px-8">

@@ -13,16 +13,14 @@ class TagihanPenggantian extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user, $tagihan, $dataPeminjam, $laporan_kerusakan;
+    public $tagihan;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $tagihan, $dataPeminjam)
+    public function __construct($tagihan)
     {
-        $this->user = $user;
         $this->tagihan = $tagihan;
-        $this->dataPeminjam = $dataPeminjam;
     }
 
 
@@ -31,9 +29,7 @@ class TagihanPenggantian extends Mailable
         return $this->view('emails.tagihan_penggantian')
             ->subject('Tagihan Penggantian')
             ->with([
-                'user' => $this->user,
-                'tagihan' => $this->tagihan,
-                'dataPeminjam' => $this->dataPeminjam
+                'tagihan' => $this->tagihan
             ]);
     }
 
@@ -55,9 +51,7 @@ class TagihanPenggantian extends Mailable
         return new Content(
             view: 'emails.tagihan_penggantian',
             with: [
-                'user' => $this->user,
-                'tagihan' => $this->tagihan,
-                'dataPeminjam' => $this->dataPeminjam
+                'tagihan' => $this->tagihan
             ],
         );
     }

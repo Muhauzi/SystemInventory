@@ -4,9 +4,16 @@
         Data Pinjam
     </x-slot>
 
-    <x-pagetittle>
-        Data Pinjam
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>Data Pinjam</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="route('dashboard')">Home</a></li>
+                <li class="breadcrumb-item">Users</li>
+                <li class="breadcrumb-item active">Data Pinjam</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <section>
         <div class="container mx-auto px-4 sm:px-8">

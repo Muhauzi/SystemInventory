@@ -4,9 +4,16 @@
         Form Laporan Kerusakan
     </x-slot>
 
-    <x-pagetittle>
-        Form Laporan Kerusakan
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>Form Laporan Kerusakan</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Laporan Kerusakan</li>
+                <li class="breadcrumb-item active">Form Laporan Kerusakan</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <section>
         <div class="container mx-auto px-4 sm:px-8">

@@ -1,5 +1,16 @@
 <x-layout title="Tambah Kategori" >
     <x-alert></x-alert>
+    <div class="pagetitle">
+        <h1>Form Tambah Kategori Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Kategori Inventaris</li>
+                <li class="breadcrumb-item active">Form Tambah Kategori Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('kategori.index') }}">
             <button type="button" class="btn btn-primary my-2 btn-icon-text">

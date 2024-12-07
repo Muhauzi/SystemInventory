@@ -2,8 +2,16 @@
     <x-slot name="title">
         Tambah Barang
     </x-slot>
-
-    <x-pagetittle>Tambah Barang</x-pagetittle>
+    <div class="pagetitle">
+        <h1>Tambah Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Inventaris</li>
+                <li class="breadcrumb-item active">Form Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <x-section>
         <div class="d-flex justify-content-end mb-3">

@@ -3,9 +3,16 @@
         Detail Kerusakan Barang
     </x-slot>
 
-    <x-pagetittle>
-        Detail Kerusakan Barang
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>Detail Kerusakan Barang</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Laporan Kerusakan</li>
+                <li class="breadcrumb-item active">Detail Kerusakan Barang</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <x-alert></x-alert>
 

@@ -81,7 +81,7 @@ Route::prefix('kategori')->name('kategori.')->middleware(['auth', 'verified', 'a
     Route::delete('/delete/{id}', [KategoriController::class, 'destroy'])->name('delete');
 });
 
-Route::prefix('user')->name('user.')->middleware(['auth', 'verified',])->group(function () {
+Route::prefix('user')->name('user.')->middleware(['auth'])->group(function () {
     Route::get('/profile', [UsersController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [UsersController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [UsersController::class, 'updateProfile'])->name('profile.update');
@@ -90,6 +90,7 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'verified',])->group(f
     Route::get('/riwayat_peminjaman', [UsersController::class, 'riwayatPeminjaman'])->name('riwayat_peminjaman');
     Route::get('/riwayat_peminjaman/{id}', [UsersController::class, 'detailPeminjaman'])->name('detail_peminjaman');
     Route::get('/buktiPinjam/{id}', [PeminjamanController::class, 'buktiPinjam'])->name('buktiPinjam');
+    Route::get('/tagihan_kerusakan', [UsersController::class, 'listTagihanKerusakan'])->name('TagihanKerusakan');
 });
 
 Route::prefix('pimpinan')->name('pimpinan.')->middleware(['auth', 'verified', 'pimpinan'])->group(function () {
@@ -100,6 +101,9 @@ Route::prefix('pimpinan')->name('pimpinan.')->middleware(['auth', 'verified', 'p
     Route::post('/update_izin/{id}', [AtasanController::class, 'updateIzinPeminjamanInventaris'])->name('update_izin');
     Route::get('/download_laporan_kerusakan', [AtasanController::class, 'downloadLaporanKerusakan'])->name('download_laporan_kerusakan');
 });
+
+// Route::get('/sendTagihan/{id}', [LaporanKerusakanController::class, 'sendEmailPenagihan'])->name('sendTagihan');
+Route::get('/getLaporanKerusakan', [LaporanKerusakanController::class, 'getLaporanKerusakan'])->name('getLaporanKerusakan');
 
 Route::middleware('auth')->group(function () {
     Route::get('/unauthorized', function () {

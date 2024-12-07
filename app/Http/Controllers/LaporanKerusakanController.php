@@ -151,7 +151,7 @@ class LaporanKerusakanController extends Controller
         $idLK = $request->id_lk;  
         $total_harga = $request->biaya_perbaikan;
         $modelTagihan = new TagihanKerusakan();
-        if ($id = $modelTagihan->where('id_laporan_kerusakan', $idLK)->first()) {
+        if ($idLK = $modelTagihan->where('id_laporan_kerusakan', $idLK)->first()) {
             return redirect()->back()->with('error', 'Tagihan sudah dibuat.');
         }
         $dataInput = ([
@@ -163,7 +163,7 @@ class LaporanKerusakanController extends Controller
         $modelTagihan->create($dataInput);
         $idTagihan = $modelTagihan->latest()->first()->id;
         $model_laporan = new LaporanKerusakan();
-        $data = $model_laporan->getPeminjaman($idLK);
+        $data = $model_laporan->getPeminjaman($request->id_lk);
         $params = [
             'transaction_details' => [
                 'order_id' => $idTagihan,
@@ -185,7 +185,8 @@ class LaporanKerusakanController extends Controller
         ]);
 
         $this->sendEmailPenagihan($idTagihan);
-        return redirect()->route('laporan_kerusakan.index');
+
+        return redirect()->route('laporan_kerusakan.index')->with('success', 'Tagihan berhasil dibuat.');
     }
 
     public function webhooks(Request $request)
@@ -230,13 +231,17 @@ class LaporanKerusakanController extends Controller
 
     public function sendEmailPenagihan($id)
     {
-        $tagihan = TagihanKerusakan::where('id_laporan_kerusakan', $id)->first();
-        $laporan_kerusakan = LaporanKerusakan::where('id', $id)->first();
-        $modelDetail = new DetailPeminjaman();
-        $dataPeminjam = $modelDetail->getDetail($laporan_kerusakan->id_detail_peminjaman);
-        $user = User::where('id', $dataPeminjam[0]->id_user)->first();
-        Mail::to($user->email)->send(new TagihanPenggantian($tagihan, $laporan_kerusakan, $dataPeminjam));
+        $tagihanModel = new TagihanKerusakan();
+        $tagihan = $tagihanModel->getLaporanPeminjaman($id);
+        // dd($tagihan);
+        Mail::to($tagihan->email)->send(new TagihanPenggantian($tagihan));
 
-        return redirect()->back()->with('success', 'Email berhasil dikirim.');
+        return response()->json(['status' => 'Email sent successfully']);
+    }
+
+    public function getLaporanKerusakan()
+    {
+        $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
+        return response()->json($laporan_kerusakan);
     }
 }
