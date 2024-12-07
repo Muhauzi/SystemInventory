@@ -3,10 +3,16 @@
         Barang Inventaris
     </x-slot>
 
-
-    <x-pagetittle>
-        Barang Inventaris
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>List Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Inventaris</li>
+                <li class="breadcrumb-item active">List Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <div class="d-flex justify-content-end mb-3">
         <button type="button" class="btn btn-secondary my-2 btn-icon-text m-2" data-bs-toggle="modal" data-bs-target="#scanModal">

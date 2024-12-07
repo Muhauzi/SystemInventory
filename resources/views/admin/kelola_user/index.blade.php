@@ -1,6 +1,13 @@
-<x-layout title="Kelola User" >
-    <div class="pagetitle" style="display: flex; justify-content: center; align-items: center;">
-        <h1 style="font-size: 2.5rem;">Kelola User</h1>
+<x-layout title="Kelola User">
+    <div class="pagetitle">
+        <h1>List User</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Admin</li>
+                <li class="breadcrumb-item active">List Users</li>
+            </ol>
+        </nav>
     </div><!-- End Page Title -->
 
     <div class="d-flex justify-content-end mb-3">

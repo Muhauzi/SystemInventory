@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('laporan_kerusakan', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_detail_peminjaman')->constrained('detail_peminjaman', 'id');
+            $table->text('deskripsi_kerusakan');
             $table->timestamps();
         });
     }

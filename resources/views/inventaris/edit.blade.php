@@ -3,9 +3,16 @@
         Edit Barang Inventaris
     </x-slot>
 
-    <x-pagetittle>
-        Edit Barang Inventaris
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>Edit Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Inventaris</li>
+                <li class="breadcrumb-item active">Edit Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <div class="pagetitle" style="display: flex; justify-content: center; align-items: center;">
         <h1 style="font-size: 2.5rem;">Edit Barang Inventaris</h1>

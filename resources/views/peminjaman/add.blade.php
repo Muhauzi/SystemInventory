@@ -3,9 +3,16 @@
         Tambah Peminjaman
     </x-slot>
 
-    <x-pagetittle>
-        Tambahkan Peminjaman
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>Form Tambah Peminjaman</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Peminjaman</li>
+                <li class="breadcrumb-item active">Form Tambah Peminjaman</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <x-alert>
         

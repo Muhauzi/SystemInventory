@@ -4,9 +4,16 @@
     </x-slot>
     
 
-    <x-pagetittle>
-        Barang Inventaris
-    </x-pagetittle>
+    <div class="pagetitle">
+        <h1>List Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Inventaris</li>
+                <li class="breadcrumb-item active">List Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('inventaris.create') }}">
@@ -93,6 +100,7 @@
                                             <form id="delete-form-{{ $item->id_barang }}" action="{{ route('inventaris.delete', $item->id_barang) }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
+                                                <input type="hidden" name="id_kategori" value="{{ $item->id_kategori }}">
                                                 <button type="button" class="btn btn-danger btn-sm" title="Hapus" onclick="confirmDelete('{{ $item->id_barang }}')">
                                                     <i class="ri-delete-bin-5-line"></i>
                                                 </button>
@@ -112,7 +120,7 @@
         </div>
     </section>
     <script>
-        function confirmDelete() {
+        function confirmDelete(id) {
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -123,7 +131,6 @@
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-
                     document.getElementById('delete-form-' + id).submit();
                 }
             })

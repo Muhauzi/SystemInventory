@@ -4,7 +4,16 @@
         Detail Barang
     </x-slot>
 
-    <x-pagetittle>Detail Barang</x-pagetittle>
+    <div class="pagetitle">
+        <h1>Detail Barang Inventaris</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Kelola Inventaris</li>
+                <li class="breadcrumb-item active">Detail Barang Inventaris</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
