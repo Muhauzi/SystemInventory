@@ -20,3 +20,10 @@ yarn-error.log
 /.idea
 /.vscode
 /.zed
+resources/Kirim.zip
+public/laporan_peminjaman.xlsx
+public/laporan_kerusakan.xlsx
+app/Http/Backup Controller.zip
+resources/Backup views.zip
+app/Bckup Models.zip
+storage/debugbar/*
