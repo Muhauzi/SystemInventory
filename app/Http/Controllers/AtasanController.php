@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\User;    
+use App\Models\User;
 use App\Models\DetailUsers;
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
@@ -35,7 +35,7 @@ class AtasanController extends Controller
     {
         $peminjaman = new Peminjaman();
         $dataPeminjaman = $peminjaman->where('status', 'pending')->get();
-        $users = User::all();   
+        $users = User::all();
         return view('atasan.list_izin_peminjaman', compact('dataPeminjaman', 'users'));
     }
 
@@ -58,37 +58,32 @@ class AtasanController extends Controller
     public function updateIzinPeminjamanInventaris(Request $request, $id)
     {
         $peminjaman = Peminjaman::find($id);
+
+        if (!$peminjaman) {
+            return redirect()->route('pimpinan.izin_peminjaman')->with('error', 'Data peminjaman tidak ditemukan.');
+        }
+
         $peminjaman->status = $request->status;
         $peminjaman->save();
-        return redirect()->route('pimpinan.izin_peminjaman')->with('success', 'Izin telah diberikan.');
-    }
 
-    public function downloadLaporanKerusakan()
-    {
-        $modelKerusakan = new LaporanKerusakan();
-        // make broken report word
-        $phpWord = new PhpWord();
-        $section = $phpWord->addSection();
-        $section->addText('Laporan Kerusakan Barang', ['bold' => true, 'size' => 16]);
-        $section->addTextBreak(1);
-        $section->addText('Berikut adalah laporan kerusakan barang yang telah terjadi:', ['size' => 12]);
-        $section->addTextBreak(1);
-        $dataKerusakan = $modelKerusakan->getLaporanKerusakan();
-        foreach ($dataKerusakan as $data) {
-            $section->addText('ID Laporan: ' . $data->id, ['bold' => true]);
-            $section->addText('ID Peminjaman: ' . $data->id_peminjaman);
-            $section->addText('ID Barang: ' . $data->id_barang);
-            $section->addText('Nama Barang: ' . $data->nama_barang);
-            $section->addText('Kategori Barang: ' . $data->nama_kategori);
-            $section->addText('Nama Peminjam: ' . $data->name);
-            $section->addText('Deskripsi Kerusakan: ' . $data->deskripsi_kerusakan);
-            $section->addText('Tanggal Laporan: ' . $data->created_at);
-            $section->addTextBreak(1);
+        $detailPeminjaman = DetailPeminjaman::where('id_peminjaman', $id)->get();
+        $barangIds = $detailPeminjaman->pluck('id_barang');
+        $barang = Inventaris::whereIn('id_barang', $barangIds)->get();
+
+        if ($request->status == 'Ditolak') {
+            foreach ($barang as $b) {
+                $b->status_barang = 'Tersedia';
+                $b->save();
+            }
         }
-        $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-        $objWriter->save('Laporan Kerusakan Barang.docx');
-        return response()->download(public_path('Laporan Kerusakan Barang.docx'));
-    }                                                                                       
 
-
+        switch ($request->status) {
+            case 'Disetujui':
+                return redirect()->route('pimpinan.izin_peminjaman')->with('success', 'Izin telah diberikan.');
+            case 'Ditolak':
+                return redirect()->route('pimpinan.izin_peminjaman')->with('success', 'Izin telah ditolak.');
+            default:
+                return redirect()->route('pimpinan.izin_peminjaman')->with('error', 'Status tidak valid.');
+        }
+    }
 }

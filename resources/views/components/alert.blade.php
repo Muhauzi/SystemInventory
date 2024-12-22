@@ -17,7 +17,7 @@
         title: 'Gagal',
         text: "{{ session('error') }}",
         showConfirmButton: false,
-        timer: 500
+        timer: 2500
     });
 </script>
 

@@ -55,7 +55,7 @@
                                                 <i class="fas fa-check"></i>
                                                 Lunas
                                             </button>
-                                            @elseif ($item->status_tagihan == 'pending')
+                                            @elseif ($item->status_tagihan == 'pending' || $item->status_tagihan == 'Belum Lunas')
                                             <a href="{{ $item->payment_url }}">
                                                 <button type="button" class="btn btn-info btn-sm" title="Bayar Tagihan">
                                                     <i class="fas fa-money-bill-wave"></i>
@@ -65,7 +65,7 @@
                                             @else
                                             <button type="button" class="btn btn-danger btn-sm" title="Tagihan Dibatalkan">
                                                 <i class="fas fa-times"></i>
-                                                $item->status_tagihan
+                                                {{ $item->status_tagihan }}
                                             </button>
                                             @endif
                                         </td>

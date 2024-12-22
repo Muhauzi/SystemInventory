@@ -24,7 +24,8 @@
                 <div class="card">
                     <div class="card-body">
                         <x-alert></x-alert>
-                        <div class="table-responsive p-3">
+                        <div class="table-responsive">
+                            <h5 class="card-title">Tabel User</h5>
                             <table class="table table-data cell-border text-center hover">
                                 <thead>
                                     <tr>
@@ -37,20 +38,27 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($users as $user)
-                                    <tr>
-                                        <th scope="row">{{ $user->id }}</th>
-                                        <td>{{ $user->name }}</td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>{{ $user->role }}</td>
-                                        <td>
-                                            <a href="{{ route('kelola_user.edit', $user->id) }}" class="btn btn-warning">Edit</a>
-                                            <form action="{{ route('kelola_user.delete', $user->id) }}" method="post" class="d-inline">
-                                                @csrf
-                                                @method('delete')
-                                                <button class="btn btn-danger" onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')">Delete</button>
-                                            </form>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <th scope="row">{{ $user->id }}</th>
+                                            <td>{{ $user->name }}</td>
+                                            <td>{{ $user->email }}</td>
+                                            <td>{{ $user->role }}</td>
+                                            <td>
+                                                <a href="{{ route('kelola_user.edit', $user->id) }}"
+                                                    class="btn btn-warning btn-sm">
+                                                    <i class="ri-pencil-line"></i>
+                                                </a>
+                                                <form action="{{ route('kelola_user.delete', $user->id) }}"
+                                                    method="post" class="d-inline">
+                                                    @csrf
+                                                    @method('delete')
+                                                    <button class="btn btn-danger btn-sm"
+                                                        onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
                                     @endforeach
                                 </tbody>
                             </table>

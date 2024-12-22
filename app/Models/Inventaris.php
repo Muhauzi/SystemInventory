@@ -34,4 +34,10 @@ class Inventaris extends Model
     {
         return $this->where('id_barang', $id)->first();
     }
+    public function getInventarisKategori()
+    {
+        return $this->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('barang.*', 'kategori_barang.nama_kategori')
+            ->get();
+    }
 }

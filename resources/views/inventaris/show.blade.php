@@ -17,7 +17,7 @@
 
     <div class="d-flex justify-content-end mb-3">
         <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
-            <button type="button" class="btn btn-primary my-2 btn-icon-text">
+            <button type="button" class="btn btn-secondary my-2 btn-icon-text">
                 <i class="ri-arrow-go-back-fill"></i> Kembali
             </button>
         </a>

@@ -15,6 +15,7 @@ use Midtrans\Config;
 use Midtrans\Snap;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class LaporanKerusakanController extends Controller
 {
@@ -58,10 +59,8 @@ class LaporanKerusakanController extends Controller
 
     public function formSubmitKerusakan($id)
     {
-        $PeminjamanModel = new Peminjaman();
-        $id_detail = DetailPeminjaman::where('id_peminjaman', $id)->first();
         $ModelDetail = new DetailPeminjaman();
-        $dataPeminjam = $ModelDetail->getDetail($id_detail->id);
+        $dataPeminjam = $ModelDetail->getBarangByDetail($id);
 
         return view('laporan.kerusakan.form_submit', compact('dataPeminjam'));
     }
@@ -83,7 +82,7 @@ class LaporanKerusakanController extends Controller
             $files = $request->file('foto_kerusakan');
             foreach ($files as $file) {
                 $filename = $file->getClientOriginalName();
-                $file->storePublicly('buktiKerusakan', 'public');
+                $file->storeAs('bukti_kerusakan', $filename, 'public');
                 $modelFotoKerusakan->create([
                     'id_laporan_kerusakan' => $id_laporan_kerusakan,
                     'foto' => $filename,
@@ -137,18 +136,20 @@ class LaporanKerusakanController extends Controller
 
     public function storeTagihan(Request $request)
     {
-        $request->validate([
-            'id_lk' => 'required|exists:laporan_kerusakan,id',
-            'biaya_perbaikan' => 'required|numeric',
-        ]
-        , [
-            'id_lk.required' => 'ID Laporan Kerusakan harus diisi.',
-            'id_lk.exists' => 'ID Laporan Kerusakan tidak ditemukan.',
-            'biaya_perbaikan.required' => 'Biaya perbaikan harus diisi.',
-            'biaya_perbaikan.numeric' => 'Biaya perbaikan harus berupa angka.',
-        ]);
+        $request->validate(
+            [
+                'id_lk' => 'required|exists:laporan_kerusakan,id',
+                'biaya_perbaikan' => 'required|numeric',
+            ],
+            [
+                'id_lk.required' => 'ID Laporan Kerusakan harus diisi.',
+                'id_lk.exists' => 'ID Laporan Kerusakan tidak ditemukan.',
+                'biaya_perbaikan.required' => 'Biaya perbaikan harus diisi.',
+                'biaya_perbaikan.numeric' => 'Biaya perbaikan harus berupa angka.',
+            ]
+        );
 
-        $idLK = $request->id_lk;  
+        $idLK = $request->id_lk;
         $total_harga = $request->biaya_perbaikan;
         $modelTagihan = new TagihanKerusakan();
         if ($idLK = $modelTagihan->where('id_laporan_kerusakan', $idLK)->first()) {
@@ -157,7 +158,7 @@ class LaporanKerusakanController extends Controller
         $dataInput = ([
             'id_laporan_kerusakan' => $request->id_lk,
             'total_tagihan' => $total_harga,
-            'status' => 'Belum Lunas',
+            'status' => 'pending',
         ]);
         // dd($data);
         $modelTagihan->create($dataInput);
@@ -172,7 +173,6 @@ class LaporanKerusakanController extends Controller
             'customer_details' => [
                 'first_name' => $data->name,
                 'email' => $data->email,
-                'phone' => $data->phone,
             ],
         ];
         $paymentUrl = Snap::createTransaction($params)->redirect_url;
@@ -243,5 +243,110 @@ class LaporanKerusakanController extends Controller
     {
         $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
         return response()->json($laporan_kerusakan);
+    }
+
+    public function unduhLaporan()
+    {
+        return view('laporan.kerusakan.unduh_laporan');
+    }
+
+    public function downloadLaporanKerusakan(Request $request)
+    {
+        $jangka_waktu = $request->jangka_waktu;
+
+        if ($jangka_waktu == '1') {
+            $waktu = $request->tahun;
+            $laporan_kerusakan = $this->ModelLaporan->laporanKerusakanByTahun($waktu);
+        } elseif ($jangka_waktu == '2') {
+            $waktu = $request->bulan;
+            $laporan_kerusakan = $this->ModelLaporan->laporanKerusakanByBulan($waktu);
+        } else {
+            $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
+        }
+        
+        if (!$laporan_kerusakan) {
+            return redirect()->back()->with('error', 'Data laporan kerusakan tidak ditemukan.');
+        }
+        $this->laporanExcel($laporan_kerusakan);
+
+        return response()->download(storage_path('app/public/laporan_kerusakan.xlsx'));
+    }
+
+    public function laporanExcel($data)
+    {
+        // generate excel file
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'ID Laporan Kerusakan');
+        $sheet->setCellValue('B1', 'Nama Peminjam');
+        $sheet->setCellValue('C1', 'Nama Barang');
+        $sheet->setCellValue('D1', 'Kategori Barang');
+        $sheet->setCellValue('E1', 'Deskripsi Kerusakan');
+        $sheet->setCellValue('F1', 'Tanggal Laporan');
+        $sheet->setCellValue('G1', 'Status');
+        $sheet->setCellValue('H1', 'Biaya Perbaikan');
+        $sheet->setCellValue('I1', 'Status Pembayaran');
+
+        // Set header style
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF808080'],
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
+
+        // Set cell border style
+        $cellStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+
+        $column = 2;
+        foreach ($data as $laporan) {
+            $sheet->setCellValue('A' . $column, $laporan->id);
+            $sheet->setCellValue('B' . $column, $laporan->name);
+            $sheet->setCellValue('C' . $column, $laporan->nama_barang);
+            $sheet->setCellValue('D' . $column, $laporan->nama_kategori);
+            $sheet->setCellValue('E' . $column, $laporan->deskripsi_kerusakan);
+            $sheet->setCellValue('F' . $column, $laporan->created_at_laporan);
+            if ($laporan->kondisi == 'Baik') {
+                $sheet->setCellValue('G' . $column, 'Telah Diperbaiki');
+            } elseif ($laporan->kondisi == 'Dalam Perbaikan') {
+                $sheet->setCellValue('G' . $column, 'Dalam Perbaikan');
+            } else {
+                $sheet->setCellValue('G' . $column, 'Belum Diperbaiki');
+            }
+            $sheet->setCellValue('H' . $column, $laporan->total_tagihan);
+            if ($laporan->status_pembayaran == 'capture' || $laporan->status_pembayaran == 'settlement') {
+                $laporan->status_pembayaran = 'Lunas';
+            } else {
+                $laporan->status_pembayaran = 'Belum Lunas';
+            }
+            $sheet->setCellValue('I' . $column, $laporan->status_pembayaran);
+            $sheet->getStyle('A' . $column . ':I' . $column)->applyFromArray($cellStyle);
+            $column++;
+        }
+
+        // Auto size columns
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $path = storage_path('app/public/laporan_kerusakan.xlsx');
+        $writer->save($path);
     }
 }

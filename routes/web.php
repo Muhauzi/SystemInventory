@@ -8,15 +8,14 @@ use App\Http\Controllers\InventarisController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\LaporanKerusakanController;
-use App\Http\Controllers\AtasanController;  
+use App\Http\Controllers\AtasanController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::get('dashboard', function () {
-    return view('admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard')->middleware(['auth', 'verified']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -59,6 +58,10 @@ Route::prefix('peminjaman')->name('peminjaman.')->middleware(['auth', 'verified'
     Route::get('/buktiPinjam/{id}', [PeminjamanController::class, 'buktiPinjam'])->name('buktiPinjam');
     Route::get('/buktiKembali/{id}', [PeminjamanController::class, 'buktiKembali'])->name('buktiKembali');
     Route::post('/scanReturn', [PeminjamanController::class, 'scanReturn'])->name('scanReturn');
+    Route::get('/laporan', [PeminjamanController::class, 'laporan'])->name('laporan');
+    Route::get('/request_unduh', [PeminjamanController::class, 'unduhLaporan'])->name('request_unduh');
+    Route::post('/download_laporan', [PeminjamanController::class, 'unduhLaporanPeminjaman'])->name('download_laporan');
+    Route::post('/updateBatasPeminjaman/{id}', [PeminjamanController::class, 'updateBatasPeminjaman'])->name('updateBatasPeminjaman');
 });
 
 Route::prefix('kerusakan')->name('laporan_kerusakan.')->middleware(['auth', 'admin'])->group(function () {
@@ -70,6 +73,8 @@ Route::prefix('kerusakan')->name('laporan_kerusakan.')->middleware(['auth', 'adm
     Route::post('/update/{id}', [LaporanKerusakanController::class, 'updateKerusakan'])->name('update');
     Route::delete('/delete/{id}', [LaporanKerusakanController::class, 'destroyKerusakan'])->name('delete');
     Route::post('/storeTagihan', [LaporanKerusakanController::class, 'storeTagihan'])->name('storeTagihan');
+    Route::get('/request_unduh', [LaporanKerusakanController::class, 'unduhLaporan'])->name('request_unduh');
+    Route::post('/download_laporan', [LaporanKerusakanController::class, 'downloadLaporanKerusakan'])->name('download_laporan');
 });
 
 Route::prefix('kategori')->name('kategori.')->middleware(['auth', 'verified', 'admin'])->group(function () {
@@ -100,8 +105,21 @@ Route::prefix('pimpinan')->name('pimpinan.')->middleware(['auth', 'verified', 'p
     Route::get('/izin_peminjaman/{id}', [AtasanController::class, 'detailIzinPeminjamanInventaris'])->name('detail_izin');
     Route::post('/update_izin/{id}', [AtasanController::class, 'updateIzinPeminjamanInventaris'])->name('update_izin');
     Route::get('/download_laporan_kerusakan', [AtasanController::class, 'downloadLaporanKerusakan'])->name('download_laporan_kerusakan');
+    Route::get('/laporan_transaksi', [PeminjamanController::class, 'laporan'])->name('laporan_transaksi');
+    Route::get('/request_unduh_kerusakan', [LaporanKerusakanController::class, 'unduhLaporan'])->name('request_unduh_kerusakan');
+    Route::post('/download_laporan_kerusakan', [LaporanKerusakanController::class, 'downloadLaporanKerusakan'])->name('download_laporan_kerusakan');
+    Route::get('/request_unduh_transaksi', [PeminjamanController::class, 'unduhLaporan'])->name('request_unduh_transaksi');
+    Route::post('/download_laporan_transaksi', [PeminjamanController::class, 'unduhLaporanPeminjaman'])->name('download_laporan_transaksi');
+    Route::get('/laporan_kerusakan', [LaporanKerusakanController::class, 'index'])->name('laporan_kerusakan');
 });
 
+Route::get('/request_unduh_laporan_kerusakan', [LaporanKerusakanController::class, 'unduhLaporan'])->name('request_unduh_laporan_kerusakan')->middleware('auth', 'verified');
+Route::get('/request_unduh_laporan_transaksi', [PeminjamanController::class, 'unduhLaporan'])->name('request_unduh_laporan_transaksi')->middleware('auth', 'verified');
+
+Route::prefix('download')->name('download.')->middleware(['auth', 'verified'])->group(function(){
+    Route::post('/laporan_transaksi', [PeminjamanController::class, 'unduhLaporanPeminjaman'])->name('laporan_transaksi');
+    Route::post('/laporan_kerusakan', [LaporanKerusakanController::class, 'downloadLaporanKerusakan'])->name('laporan_kerusakan');
+});
 // Route::get('/sendTagihan/{id}', [LaporanKerusakanController::class, 'sendEmailPenagihan'])->name('sendTagihan');
 Route::get('/getLaporanKerusakan', [LaporanKerusakanController::class, 'getLaporanKerusakan'])->name('getLaporanKerusakan');
 

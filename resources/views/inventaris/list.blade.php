@@ -2,7 +2,7 @@
     <x-slot name="title">
         Barang Inventaris
     </x-slot>
-    
+
 
     <div class="pagetitle">
         <h1>List Barang Inventaris</h1>
@@ -30,7 +30,10 @@
                     <div class="card-body">
                         <x-alert></x-alert>
                         <!-- Default Table -->
+
                         <div class="table-responsive p-3">
+
+                            <h5 class="card-title">Tabel Barang Inventaris</h5>
                             <table class="table table-data cell-border text-center hover">
                                 <thead>
                                     <tr>
@@ -46,67 +49,75 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($inventaris as $item)
-                                    <tr>
-                                        <th scope="row">{{ $item->id_barang }}</th>
-                                        <td>{{ $item->nama_barang }}</td>
-                                        <td>
-                                            @if ($item->harga_barang == null)
-                                            <span class="badge bg-danger">Belum diisi</span>
-                                            @else
-                                            Rp. {{ number_format($item->harga_barang, 0, ',', '.') }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @foreach ($kategori as $ktg)
-                                            @if ($ktg->id_kategori == $item->id_kategori)
-                                            {{ $ktg->nama_kategori }}
-                                            @endif
-                                            @endforeach
-                                        </td>
-                                        <td>{{ $item->tgl_pembelian }}</td>
-                                        <td>
-                                            @if ($item->status_barang == 'Tersedia')
-                                            <span class="badge bg-success">Tersedia</span>
-                                            @elseif ($item->status_barang == 'Dipinjam')
-                                            <span class="badge bg-info">Dipinjam</span>
-                                            @elseif ($item->status_barang == 'Tidak Tersedia')
-                                            <span class="badge bg-danger">Tidak Tersedia</span>
-                                            @else
-                                            <span class="badge bg-warning">
-                                                {{ $item->status_barang }}
-                                            </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($item->kondisi == 'Baik')
-                                            <span class="badge bg-success">Baik</span>
-                                            @elseif ($item->kondisi == 'Rusak' || $item->kondisi == 'Hilang')
-                                            <span class="badge bg-danger">{{ $item->kondisi }}</span>
-                                            @else
-                                            <span class="badge bg-warning">{{ $item->kondisi }}</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <a href="{{ route('inventaris.show', $item->id_barang) }}">
-                                                <button type="button" class="btn btn-info btn-sm" title="Detail">
-                                                    <i class="ri-eye-fill"></i>
-                                                </button>
-                                            </a>
-                                            <a href="{{ route('inventaris.edit', $item->id_barang) }}">
-                                                <button type="button" class="btn btn-warning btn-sm" title="Edit">
-                                                    <i class="ri-pencil-line"></i>
-                                                </button>
-                                            </a>
-                                            <form id="delete-form-{{ $item->id_barang }}" action="{{ route('inventaris.delete', $item->id_barang) }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <input type="hidden" name="id_kategori" value="{{ $item->id_kategori }}">
-                                                <button type="button" class="btn btn-danger btn-sm" title="Hapus" onclick="confirmDelete('{{ $item->id_barang }}')">
-                                                    <i class="ri-delete-bin-5-line"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <th scope="row">{{ $item->id_barang }}</th>
+                                            <td>{{ $item->nama_barang }}</td>
+                                            <td>
+                                                @if ($item->harga_barang == null)
+                                                    <span class="badge bg-danger">Belum diisi</span>
+                                                @else
+                                                    Rp. {{ number_format($item->harga_barang, 0, ',', '.') }}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @foreach ($kategori as $ktg)
+                                                    @if ($ktg->id_kategori == $item->id_kategori)
+                                                        {{ $ktg->nama_kategori }}
+                                                    @endif
+                                                @endforeach
+                                            </td>
+                                            <td>{{ $item->tgl_pembelian }}</td>
+                                            <td>
+                                                @if ($item->status_barang == 'Tersedia')
+                                                    <span class="badge bg-success">Tersedia</span>
+                                                @elseif ($item->status_barang == 'Dipinjam')
+                                                    <span class="badge bg-info">Dipinjam</span>
+                                                @elseif ($item->status_barang == 'Tidak Tersedia')
+                                                    <span class="badge bg-danger">Tidak Tersedia</span>
+                                                @else
+                                                    <span class="badge bg-warning">
+                                                        {{ $item->status_barang }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($item->kondisi == 'Baik')
+                                                    <span class="badge bg-success">Baik</span>
+                                                @elseif ($item->kondisi == 'Rusak' || $item->kondisi == 'Hilang')
+                                                    <span class="badge bg-danger">{{ $item->kondisi }}</span>
+                                                @else
+                                                    <span class="badge bg-warning">{{ $item->kondisi }}</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('inventaris.show', $item->id_barang) }}">
+                                                    <button type="button" class="btn btn-info btn-sm" title="Detail">
+                                                        <i class="ri-eye-fill"></i>
+                                                    </button>
+                                                </a>
+                                                <a href="{{ route('inventaris.edit', $item->id_barang) }}">
+                                                    <button type="button" class="btn btn-warning btn-sm"
+                                                        title="Edit">
+                                                        <i class="ri-pencil-line"></i>
+                                                    </button>
+                                                </a>
+                                                @if (!in_array($item->id_barang, $isBorrowed->pluck('id_barang')->toArray()))
+                                                    <form id="delete-form-{{ $item->id_barang }}"
+                                                        action="{{ route('inventaris.delete', $item->id_barang) }}"
+                                                        method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <input type="hidden" name="id_kategori"
+                                                            value="{{ $item->id_kategori }}">
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            title="Hapus"
+                                                            onclick="confirmDelete('{{ $item->id_barang }}')">
+                                                            <i class="ri-delete-bin-5-line"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </td>
+                                        </tr>
                                     @endforeach
                                     <!-- Tambahkan baris lainnya sesuai kebutuhan -->
                                 </tbody>
@@ -136,5 +147,5 @@
             })
         }
     </script>
-    
+
 </x-layout>

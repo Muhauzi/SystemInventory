@@ -37,7 +37,7 @@ class SendReturnReminders extends Command
 
             $diff = $now->diffInDays($dueDate, false);
             $this->info("Tanggal sekarang: {$now}, Tanggal tenggat: {$dueDate}, Selisih hari: {$diff} untuk peminjaman ID: {$data->id_peminjaman}");
-            if ($diff <= 3) {
+            if ($diff <= 3) { // jika tenggat 3 hari atau kurang dari 3 hari, email akan dikirim
                 $user = User::find($data->id_user);
                 Mail::to($user->email)->send(new ReturnReminderMail($data, $barang, $user));
                 $this->info("Email dikirim ke: {$user->email}");

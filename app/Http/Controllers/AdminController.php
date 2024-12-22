@@ -2,14 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Peminjaman;
 use Illuminate\Http\Request;
-use App\Models\User; // Pastikan untuk menambahkan ini
+use App\Models\User; 
+use App\Models\Inventaris; 
+use App\Models\DetailPeminjaman;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard');
+        $modelPeminjaman = new Peminjaman();
+        $modelInventaris = new Inventaris();
+        $modelUser = new User();
+
+        $dataPeminjaman = $modelPeminjaman->dataPeminjaman();
+        $dataInventaris = $modelInventaris->getInventarisKategori();
+        $dataUser = $modelUser->all();
+
+        $jumlahBarangByKategori = $dataInventaris->groupBy('nama_kategori')->map(function ($item) {
+            return $item->count();
+        }); 
+        $modelDetailPeminjaman = new DetailPeminjaman();
+        $barangDikembalikan = $modelDetailPeminjaman->getBarangDikembalikan(); 
+        $barangDipinjam = $modelDetailPeminjaman->getBarangDipinjam();
+        // dd($dataUser);
+
+        return view('admin.dashboard', compact('dataPeminjaman', 'dataInventaris', 'dataUser', 'jumlahBarangByKategori', 'barangDikembalikan', 'barangDipinjam'));
     }
 
     public function kelola_user()

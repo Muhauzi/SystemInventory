@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\DetailUsers;
+use Illuminate\Support\Facades\Auth;
 
 class KelolaUsersController extends Controller
 {
@@ -78,37 +79,27 @@ class KelolaUsersController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email',
-            'role' => 'required',
-            'phone' => 'required',
-            'department' => 'required',
+            'role' => 'required'
         ],
         [
             'name.required' => 'Nama harus diisi.',
             'email.required' => 'Email harus diisi.',
             'email.email' => 'Email tidak valid.',
             'role.required' => 'Role harus diisi.',
-            'phone.required' => 'Nomor telepon harus diisi.',
-            'department.required' => 'Departemen harus diisi.',
         ]); // Validasi inputan
 
         $user = User::find($id); // Mengambil data user dari model user berdasarkan id
         $user->name = $request->name; // Mengubah data nama dari form
         $user->email = $request->email; // Mengubah data email dari form
         $user->role = $request->role;       // Mengubah data role dari form
-
-        $detail = DetailUsers::where('user_id', $id)->first(); // Mengambil data detail user berdasarkan user_id
-        $detail->phone = $request->phone; // Mengubah data phone dari form
-        $detail->department = $request->department; // Mengubah data department dari form
-        $detail->save(); // Menyimpan data detail user
-
-        $gambar = $request->file('profile_image'); // Mengambil data profile_image dari form
-
-        if ($gambar) {
-            $gambar->move('profileImages', $gambar->getClientOriginalName()); // Pindahkan gambar ke folder profileImages
-            $detail->profile_image = $gambar->getClientOriginalName(); // Mengubah data profile_image dari form
+        
+        if ($request->password) { // Jika password diisi
+            $user->password = bcrypt($request->password); // Mengubah data password dari form
+        } else {
+            $user->password = $user->password; // Jika password tidak diisi, gunakan password lama
         }
 
-        $detail->save(); // Menyimpan data user
+        $user->save();
 
         return redirect()->route('kelola_user.index')->with('success', 'User berhasil diubah'); // Redirect ke route kelola_user.index
     }
@@ -116,6 +107,9 @@ class KelolaUsersController extends Controller
     public function destroy($id) // Menghapus data user
     {
         $user = User::find($id); // Mengambil data user berdasarkan id
+        if ($user->id == Auth::user()->id) { // Jika id user sama dengan id user yang sedang login
+            return redirect()->route('kelola_user.index')->with('error', 'Tidak dapat menghapus akun sendiri'); // Redirect ke route kelola_user.index
+        }
         $user->delete(); // Menghapus data user 
 
         return redirect()->route('kelola_user.index')->with('success', 'User berhasil dihapus');    // Redirect ke route kelola_user.index

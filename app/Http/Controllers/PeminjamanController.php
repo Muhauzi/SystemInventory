@@ -8,7 +8,7 @@ use App\Models\Inventaris;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\User;
 use App\Models\DetailPeminjaman as ModelDetailPeminjaman;
-use App\Http\Controllers\LaporanKerusakan;
+use App\Models\BatasPeminjaman;
 
 class PeminjamanController extends Controller
 {
@@ -20,6 +20,16 @@ class PeminjamanController extends Controller
 
         return view('peminjaman.index', compact('peminjaman', 'users'));    // Menampilkan data peminjaman
     }
+
+    public function laporan() // Menampilkan data peminjaman
+    {
+        $peminjaman = ModelPeminjaman::all(); // Mengambil semua data peminjaman
+        $users = User::all();   // Mengambil semua data user
+
+        return view('peminjaman.index', compact('peminjaman', 'users'));    // Menampilkan data peminjaman
+    }
+
+
 
     public function pengembalian() // Menampilkan data pengembalian
     {
@@ -36,22 +46,25 @@ class PeminjamanController extends Controller
     {
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
         $detailPeminjaman = (new ModelDetailPeminjaman())->getDetail($peminjaman->id_peminjaman); // Mengambil data detail peminjaman berdasarkan id peminjaman
+        // dd($detailPeminjaman);
         $users = User::find($peminjaman->id_user); // Mengambil data user berdasarkan id user
+        $modelDetail = new ModelDetailPeminjaman();
 
         if (!$peminjaman) { // Jika data peminjaman tidak ditemukan
             return redirect()->back()
                 ->with('error', 'Data peminjaman tidak ditemukan.');
         }
 
-        return view('peminjaman.show', compact('peminjaman', 'users', 'detailPeminjaman')); // Menampilkan detail peminjaman
+        return view('peminjaman.show', compact('peminjaman', 'users', 'detailPeminjaman', 'modelDetail')); // Menampilkan detail peminjaman
     }
 
     public function listPerizinan() // Menampilkan data perizinan
     {
-        $peminjaman = ModelPeminjaman::whereIn('status', ['Pending', 'Disetujui'])->get(); // Mengambil data peminjaman berdasarkan status pending atau disetujui
+        $peminjaman = ModelPeminjaman::whereIn('status', ['Pending', 'Disetujui', 'Ditolak'])->get(); // Mengambil data peminjaman berdasarkan status pending atau disetujui
         $users = User::all();   // Mengambil semua data user
+        $batasPeminjaman = BatasPeminjaman::first();
 
-        return view('peminjaman.list-perizinan', compact('peminjaman', 'users')); // Menampilkan data perizinan
+        return view('peminjaman.list-perizinan', compact('peminjaman', 'users', 'batasPeminjaman')); // Menampilkan data perizinan
     }
 
     public function create() // Menampilkan form tambah peminjaman
@@ -110,7 +123,9 @@ class PeminjamanController extends Controller
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
         $nilaiBarangDipinjam = $barang->sum('harga_barang'); // Menjumlahkan nilai barang yang dipinjam
 
-        if ($nilaiBarangDipinjam > 10000000) { // Jika nilai barang yang dipinjam lebih dari 10000000
+        $batasNominal = BatasPeminjaman::first()->batas_nominal; // Mengambil data batas nominal peminjaman
+
+        if ($nilaiBarangDipinjam >= $batasNominal) { // Jika nilai barang yang dipinjam lebih dari $batasNominal
             $data['status'] = 'Pending'; // Menambahkan data status dari form
             $peminjaman->update($data); // Mengupdate data peminjaman
 
@@ -340,15 +355,13 @@ class PeminjamanController extends Controller
             }
             return redirect()->route('peminjaman.index')
                 ->with('success', 'Data peminjaman berhasil diubah.');
-        } 
-        elseif ($status == 'Dipinjam') { // Jika status peminjaman disetujui
+        } elseif ($status == 'Dipinjam') { // Jika status peminjaman disetujui
             $peminjaman->status = $status;  // Menambahkan data status dari form
             $peminjaman->save();    // Menyimpan data peminjaman
 
             return redirect()->route('peminjaman.listPerizinan')
                 ->with('success', 'Data peminjaman berhasil diubah.');
-        }
-        else {
+        } else {
             return redirect()->back()
                 ->with('error', 'Status peminjaman tidak valid.');
         }
@@ -360,5 +373,193 @@ class PeminjamanController extends Controller
         $peminjaman = ModelPeminjaman::where('status', $status)->get(); // Mengambil data peminjaman berdasarkan status
 
         return view('peminjaman.index', compact('peminjaman'));
+    }
+
+    public function unduhLaporan()
+    {
+        return view('laporan.transaksi.unduh_laporan');
+    }
+
+    public function unduhLaporanPeminjaman(Request $request)
+    {
+        $jangka_waktu = $request->jangka_waktu;
+
+        $ModelPeminjaman = new ModelPeminjaman();
+
+        if ($jangka_waktu == '1') {
+            $waktu = $request->tahun;
+            $laporan_peminjaman = $ModelPeminjaman->laporanPeminjamanByTahun($waktu);
+        } elseif ($jangka_waktu == '2') {
+            $waktu = $request->bulan;
+            $laporan_peminjaman = $ModelPeminjaman->laporanPeminjamanByBulan($waktu);
+        } else {
+            $laporan_peminjaman = $ModelPeminjaman->getBarangKategori();
+        }
+
+        if ($laporan_peminjaman == false) {
+            return redirect()->back()
+                ->with('error', 'Data peminjaman tidak ditemukan.');
+        }
+
+        // dd($laporan_peminjaman);
+
+        $path = $this->laporanPeminjamanExcel($laporan_peminjaman, $jangka_waktu, $waktu);
+        session()->flash('success', 'Laporan berhasil diunduh');
+        return response()->download($path);
+    }
+
+    public function laporanPeminjamanExcel($data, $when, $waktu)
+    {
+        // Membuat objek spreadsheet baru
+        $excel = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        // Mengatur sheet aktif ke sheet pertama (index 0)
+        $excel->setActiveSheetIndex(0);
+
+        // Mendapatkan sheet aktif untuk digunakan
+        $sheet = $excel->getActiveSheet();
+
+        // Menentukan judul laporan berdasarkan parameter 'when'
+        if ($when == '1') {
+            // Laporan tahunan
+            $sheet->setCellValue('A1', 'Laporan Peminjaman Tahun ' . $waktu);
+        } elseif ($when == '2') {
+            // Laporan bulanan
+            $months = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
+            ];
+            $sheet->setCellValue('A1', 'Laporan Peminjaman Bulan ' . $months[$waktu]);
+        } else {
+            // Judul umum jika parameter tidak sesuai
+            $sheet->setCellValue('A1', 'Laporan Peminjaman');
+        }
+
+        // Menggabungkan sel untuk judul agar terlihat di tengah (dari kolom A sampai N)
+        $sheet->mergeCells('A1:N1');
+        // Membuat teks judul tebal (bold)
+        $sheet->getStyle('A1')->getFont()->setBold(true);
+        // Menyetel teks judul agar rata tengah secara horizontal
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Menambahkan header kolom untuk tabel laporan
+        $sheet->setCellValue('A3', 'No');
+        $sheet->setCellValue('B3', 'Tanggal Peminjaman');
+        $sheet->setCellValue('C3', 'Nama Peminjam');
+        $sheet->setCellValue('D3', 'ID Peminjam');
+        $sheet->setCellValue('E3', 'Nama Barang');
+        $sheet->setCellValue('F3', 'Kategori Barang');
+        $sheet->setCellValue('G3', 'Kode Barang');
+        $sheet->setCellValue('H3', 'Nominal Barang');
+        $sheet->setCellValue('I3', 'Persetujuan Pimpinan');
+        $sheet->setCellValue('J3', 'Tanggal Pengembalian');
+        $sheet->setCellValue('K3', 'Kondisi Barang');
+
+        // Menentukan gaya untuk header tabel (warna, font, rata tengah)
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => '4F81BD']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]
+        ];
+        // Menerapkan gaya header pada baris ke-3 (header tabel)
+        $sheet->getStyle('A3:N3')->applyFromArray($headerStyle);
+
+        // Mengatur kolom agar lebarnya menyesuaikan isi
+        foreach (range('A', 'N') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        // Inisialisasi nomor urut dan baris awal untuk data
+        $no = 1;
+        $row = 4;
+
+        // Mengisi data ke dalam tabel dari parameter $data
+        foreach ($data as $item) {
+            $sheet->setCellValue('A' . $row, $no); // Nomor urut
+            $sheet->setCellValue('B' . $row, $item->tgl_pinjam); // Tanggal peminjaman
+            $sheet->setCellValue('C' . $row, $item->name); // Nama peminjam
+            $sheet->setCellValue('D' . $row, $item->id_user); // ID peminjam
+            $sheet->setCellValue('E' . $row, $item->nama_barang); // Nama barang
+            $sheet->setCellValue('F' . $row, $item->nama_kategori); // Kategori barang
+            $sheet->setCellValue('G' . $row, $item->id_barang); // Kode barang
+            $sheet->setCellValue('H' . $row, $item->harga_barang); // Harga barang
+            $sheet->setCellValue('I' . $row, $item->status); // Status persetujuan
+            // Tanggal pengembalian (jika ada), jika tidak ada ditampilkan '-'
+            if ($item->tgl_kembali != null) {
+                $sheet->setCellValue('J' . $row, $item->tgl_kembali);
+            } else {
+                $sheet->setCellValue('J' . $row, '-');
+            }
+            $sheet->setCellValue('K' . $row, $item->kondisi); // Kondisi barang
+
+            $no++; // Menambah nomor urut
+            $row++; // Pindah ke baris berikutnya
+        }
+
+        // Membuat writer untuk menyimpan file Excel
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($excel);
+
+        // Menentukan nama file berdasarkan parameter 'when'
+        if ($when == '1') {
+            // Nama file untuk laporan tahunan
+            $filename = 'laporan_peminjaman_' . $waktu;
+        } elseif ($when == '2') {
+            // Nama file untuk laporan bulanan
+            $months = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
+            ];
+            $filename = 'laporan_transaksi_' . $months[$waktu];
+        } else {
+            $sheet->setCellValue('A1', 'Laporan Peminjaman');
+        }
+
+        // Menentukan path tempat penyimpanan file
+        $path = storage_path('app/public/laporan_transaksi/' . $filename . '.xlsx');
+
+        // Membuat folder jika belum ada
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        // Menyimpan file Excel di path yang sudah ditentukan
+        $writer->save($path);
+
+        // Mengembalikan path file yang telah disimpan
+        return $path;
+    }
+
+    public function updateBatasPeminjaman($id)
+    {
+        $batasPeminjaman = BatasPeminjaman::find($id); // Mengambil data batas peminjaman berdasarkan
+        if (!$batasPeminjaman) { // Jika data batas peminjaman tidak ditemukan
+            return redirect()->back()
+                ->with('error', 'Data batas peminjaman tidak ditemukan.');
+        }
+        
+        $batasPeminjaman->update(['batas_nominal' => request('batas_nominal')]); // Mengupdate data batas peminjaman
+
+        return redirect()->back()
+            ->with('success', 'Data batas peminjaman berhasil diubah.'); // Redirect ke route peminjaman.index
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Inventaris;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\KategoriBarang;
+use Illuminate\Support\Facades\Storage;
+use App\Models\DetailPeminjaman;
 
 class InventarisController extends Controller
 {
@@ -24,10 +26,14 @@ class InventarisController extends Controller
         $inventaris = Inventaris::where('id_kategori', $id)->get(); // Mengambil data inventaris berdasarkan kategori
         $kategori = KategoriBarang::all(); // Mengambil data kategori barang
 
-        return view('inventaris.list', compact('inventaris', 'kategori')); // Menampilkan halaman list inventaris
+        $modelDetailPeminjaman = new DetailPeminjaman();
+        $isBorrowed = $modelDetailPeminjaman->isBorrowed();
+
+
+        return view('inventaris.list', compact('inventaris', 'kategori', 'isBorrowed')); // Menampilkan halaman list inventaris
     }
 
-    public function scanQR(Request $request)
+    public function scanQR(Request $request) // untuk scan qr mencari barang melalui qr
     {
         $id_barang = $request->id_barang; // Mengambil id barang dari form
 
@@ -45,6 +51,27 @@ class InventarisController extends Controller
     {
         $inventaris = Inventaris::find($id); // Mengambil data inventaris berdasarkan id
         $kategori = KategoriBarang::all(); // Mengambil data kategori barang
+
+        $qrCode = Storage::exists('public/qrcodes/' . $inventaris->qr_code); // Mengecek apakah qrcode ada atau tidak
+
+        if (!$qrCode) { // Jika qrcode tidak ada
+            $qrCodePath = 'qrcodes/' . $inventaris->id_barang . '.png'; // Path untuk menyimpan qrcode
+            $fullPath = storage_path('app/public/' . $qrCodePath); // Full path untuk menyimpan qrcode
+
+            if (!file_exists(dirname($fullPath))) { // Membuat folder jika tidak ada
+                mkdir(dirname($fullPath), 0755, true); // Membuat folder
+            }
+
+            QrCode::format('png')->size(200)->generate($inventaris->id_barang, $fullPath); // Membuat qrcode dengan format png
+
+            $fileQr = basename($qrCodePath); // Mengambil nama file qrcode
+
+            $inventaris->update([
+                'qr_code' => $fileQr, // Update qr_code pada database
+            ]);
+        }
+
+
 
         return view('inventaris.show', compact('inventaris', 'kategori')); // Menampilkan halaman detail inventaris
     }

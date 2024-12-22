@@ -26,11 +26,11 @@ class Peminjaman extends Model
     {
         $data = DB::table('peminjaman')
             ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
-            ->join('inventaris', 'detail_peminjaman.id_barang', '=', 'inventaris.id_barang')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
             ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->select('peminjaman.*', 'detail_peminjaman.*', 'inventaris.*', 'users.name', 'users.email', 'users.id')
+            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*', 'users.name', 'users.email', 'users.id', 'peminjaman.created_at as created_at_peminjaman', 'peminjaman.updated_at as updated_at_peminjaman')
             ->get();
-        return $data;   
+        return $data;
     }       
 
     public function dataPeminjamanByDetail($id)
@@ -45,4 +45,59 @@ class Peminjaman extends Model
         return $data;
     }
     
+    public function laporanPeminjamanByTahun($tahun)
+    {
+        $data = DB::table('peminjaman')
+            ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*', 'users.name', 'users.email', 'users.id', 'kategori_barang.*')
+            ->whereYear('detail_peminjaman.created_at', $tahun)
+            ->get();
+
+        if ($data->isEmpty()) {
+            return false;
+        }
+
+        return $data;
+    }
+
+    public function laporanPeminjamanByBulan($bulan)
+    {
+        $data = DB::table('peminjaman')
+            ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*', 'users.name', 'users.email', 'users.id', 'kategori_barang.*')
+            ->whereMonth('detail_peminjaman.created_at', $bulan)
+            ->get();
+        if ($data->isEmpty()) {
+            return false;
+        }
+
+        return $data;
+    }
+
+    public function peminjamanDitolak($id)
+    {
+        $data = DB::table('peminjaman')
+            ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*')
+            ->where('peminjaman.id_peminjaman', $id)
+            ->get();
+        return $data;
+    }
+
+    public function getDetailPeminjaman($id_peminjaman)
+    {
+        $data = DB::table('detail_peminjaman')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->select('detail_peminjaman.*', 'barang.*')
+            ->where('id_peminjaman', $id_peminjaman)
+            ->get();
+        return $data;
+    }
 }

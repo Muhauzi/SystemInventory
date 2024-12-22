@@ -46,13 +46,19 @@
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye-slash" id="togglePasswordIcon"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="role" class="form-label">Role</label>
                                 <select class="form-select" id="role" name="role" required>
                                     <option value="admin">Admin</option>
                                     <option value="user">User</option>
+                                    <option value="pimpinan">Pimpinan</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -77,4 +83,20 @@
             </div>
         </div>
     </section>
+    
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function (e) {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('togglePasswordIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.classList.remove('bi-eye-slash');
+                passwordIcon.classList.add('bi-eye');
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.classList.remove('bi-eye');
+                passwordIcon.classList.add('bi-eye-slash');
+            }
+        });
+    </script>
 </x-layout>

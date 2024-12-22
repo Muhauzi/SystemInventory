@@ -11,6 +11,7 @@ class TagihanKerusakan extends Model
     protected $primaryKey = 'id'; // Mendeklarasikan primary key tabel tagihan_kerusakan
 
     protected $fillable = [
+        'id',
         'id_tagihan',
         'id_laporan_kerusakan',
         'status',
@@ -34,8 +35,7 @@ class TagihanKerusakan extends Model
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
             ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('users_detail', 'users.id', '=', 'users_detail.user_id')
-            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*', 'users_detail.*')
+            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*')
             ->where('tagihan_kerusakan.id', $id)
             ->first();
     }
@@ -48,8 +48,7 @@ class TagihanKerusakan extends Model
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
             ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('users_detail', 'users.id', '=', 'users_detail.user_id')
-            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*', 'users_detail.*', 'tagihan_kerusakan.status as status_tagihan')
+            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*', 'tagihan_kerusakan.status as status_tagihan')
             ->where('users.id', $id)
             ->get();
     }

@@ -14,13 +14,6 @@
     </div><!-- End Page Title -->
 
     <x-section>
-        <div class="d-flex justify-content-end mb-3">
-            <a href="/inventaris">
-                <button type="button" class="btn btn-primary my-2 btn-icon-text">
-                    <i class="ri-arrow-go-back-fill"></i> Kembali
-                </button>
-            </a>
-        </div>
         <div class="m-4">
             <x-alert></x-alert>
         </div>
@@ -68,9 +61,14 @@
                         <label for="deskripsi" class="form-label">Deskripsi</label>
                         <textarea class="form-control" id="deskripsi" name="deskripsi_barang" rows="3"></textarea>
                     </div>
-                        
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary" onclick="confirmModal()" >Tambah</button>
+
+                    <div class="d-flex justify-content-start gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary" onclick="confirmModal()">Tambah</button>
+                        <a href="/inventaris">
+                            <button type="button" class="btn btn-secondary btn-icon-text">
+                                <i class="ri-arrow-go-back-fill"></i> Kembali
+                            </button>
+                        </a>
                     </div>
                 </form><!-- End Multi Columns Form -->
             </div>

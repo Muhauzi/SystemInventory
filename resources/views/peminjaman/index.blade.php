@@ -1,20 +1,48 @@
 <x-layout>
 
     <x-slot name="title">
-        {{
-            $title ?? 'Data Peminjam'
-        }}
+        @if (Route::is('peminjaman'))
+            {{ $title ?? 'Data Peminjam' }}
+        @elseif(Route::is('peminjaman.pengembalian'))
+            {{ $title ?? 'Data Pengembalian' }}
+        @endif
     </x-slot>
 
-    <div class="pagetitle">
-        <h1>List Peminjaman</h1>
-        <nav>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                <li class="breadcrumb-item active">Peminjaman</li>
-            </ol>
-        </nav>
-    </div><!-- End Page Title -->
+
+    @if (Route::is('peminjaman.index'))
+        <div class="pagetitle">
+            <h1>List Peminjaman</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Peminjaman</li>
+                </ol>
+            </nav>
+        </div><!-- End Page Title -->
+    @elseif(Route::is('peminjaman.pengembalian'))
+        <div class="pagetitle">
+            <h1>List Pengembalian</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Pengembalian</li>
+                </ol>
+            </nav>
+        </div><!-- End Page Title -->
+        @elseif (Route::is('peminjaman.laporan') || Route::is('pimpinan.laporan_transaksi'))
+        <div class="pagetitle">
+            <h1>List Transaksi</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Laporan Transaksi</li>
+                </ol>
+            </nav>
+        </div><!-- End Page Title -->
+    @endif
+
+
+
 
     <section>
         <div class="container mx-auto px-4 sm:px-8">
@@ -22,43 +50,56 @@
 
                 <div class="d-flex justify-content-end mb-3">
                     <div class="my-2 flex sm:flex-row flex-col me-3">
-                        <div class="block relative">
-                            <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input placeholder="Search" class="appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none" />
-                        </div>
+
                     </div>
                     <div class="block relative">
-                        <a href="{{ route('peminjaman.add') }}">
-                            <button type="button" class="btn btn-primary my-2 btn-icon-text">
-                                <i class="ri-add-fill"></i> Tambah
-                            </button>
-                        </a>
+                        @if (Route::is('peminjaman.index') || Route::is('peminjaman.pengembalian'))
+                            <a href="{{ route('peminjaman.add') }}">
+                                <button type="button" class="btn btn-primary my-2 btn-icon-text">
+                                    <i class="ri-add-fill"></i> Tambah
+                                </button>
+                            </a>
+                        @endif
+
                     </div>
                     <div class="block">
                         <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-secondary my-2 btn-icon-text m-2" data-bs-toggle="modal" data-bs-target="#scanModal">
-                            <i class="ri-scan-2-line"></i> Scan Pengembalian
-                        </button>
+                        @if (Route::is('peminjaman.index'))
+                            <button type="button" class="btn btn-secondary my-2 btn-icon-text m-2"
+                                data-bs-toggle="modal" data-bs-target="#scanModal">
+                                <i class="ri-scan-2-line"></i> Scan Peminjaman
+                            </button>
+                        @elseif(Route::is('peminjaman.pengembalian'))
+                            <button type="button" class="btn btn-secondary my-2 btn-icon-text m-2"
+                                data-bs-toggle="modal" data-bs-target="#scanModal">
+                                <i class="ri-scan-2-line"></i> Scan Pengembalian
+                            </button>
+                        @elseif (Route::is('peminjaman.laporan') || Route::is('pimpinan.laporan_transaksi'))
+                            <a href="{{ route('request_unduh_laporan_transaksi') }}"
+                                class="btn btn-success ms-2 my-2 btn-icon-text"><i class="ri-download-2-line"></i> Unduh
+                                Laporan</a>
+                        @endif
 
                         <!-- Modal -->
-                        <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true">
+                        <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel"
+                            aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="scanModalLabel">Scan Pengembalian</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <div class="reader" id="scannerBarang"></div>
-                                        <form action="{{ route('peminjaman.scanReturn') }}" id="formScanFind" method="post">
+                                        <form action="{{ route('peminjaman.scanReturn') }}" id="formScanFind"
+                                            method="post">
                                             @csrf
                                             <input type="hidden" name="id_barang" id="id_barang">
                                             @if (session('id_barang'))
-                                            <div class="alert alert-success mt-3">
-                                                Peminjaman ditemukan
-                                            </div>
+                                                <div class="alert alert-success mt-3">
+                                                    Peminjaman ditemukan
+                                                </div>
                                             @endif
                                         </form>
                                     </div>
@@ -72,38 +113,47 @@
 
                 <x-alert></x-alert>
 
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
-                        <div class="table-responsive">
-                            <table class="table table-data text-center">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Kode Peminjaman</th>
-                                        <th scope="col">Nama Peminjam</th>
-                                        <th scope="col">Tanggal Pinjam</th>
-                                        <th scope="col">Tenggat Pengembalian</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($peminjaman as $item)
+                <div class="card">
+                    <div class="card-body">
+                        @if (Route::is('peminjaman.index'))
+                            <h5 class="card-title">Tabel Peminjaman</h5>
+                        @elseif(Route::is('peminjaman.pengembalian'))
+                            <h5 class="card-title">Tabel Pengembalian</h5>
+                            @elseif (Route::is('peminjaman.laporan') || Route::is('pimpinan.laporan_transaksi'))
+                        <h5 class="card-title">Tabel Transaksi</h5>
+                        @endif
+                        <!-- Small tables -->
+                        <table class="table table-data table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Kode Peminjaman</th>
+                                    <th scope="col">Nama Peminjam</th>
+                                    <th scope="col">Tanggal Pinjam</th>
+                                    <th scope="col">Tenggat Pengembalian</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($peminjaman as $item)
                                     <tr>
                                         <th scope="row">{{ $item->id_peminjaman }}</th>
                                         <td>
                                             @foreach ($users as $user)
-                                            @if ($user->id == $item->id_user)
-                                            {{ $user->name }}
-                                            @endif
+                                                @if ($user->id == $item->id_user)
+                                                    {{ $user->name }}
+                                                @endif
                                             @endforeach
                                         </td>
                                         <td>{{ $item->tgl_pinjam }}</td>
                                         <td>{{ $item->tgl_kembali ?? 'Belum Dikembalikan' }}</td>
                                         <td>
                                             @if ($item->status == 'Dipinjam')
-                                            <span class="badge bg-warning">Dipinjam</span>
+                                                <span class="badge bg-warning">Dipinjam</span>
                                             @elseif ($item->status == 'Dikembalikan')
-                                            <span class="badge bg-success">Dikembalikan</span>
+                                                <span class="badge bg-success">Dikembalikan</span>
+                                            @else
+                                                <span class="badge bg-info">{{ $item->status }}</span>
                                             @endif
                                         </td>
                                         <td>
@@ -113,18 +163,20 @@
                                                 </button>
                                             </a>
                                             @if ($item->status == 'Dipinjam')
-                                            <a href="{{ route('peminjaman.edit', $item->id_peminjaman) }}">
-                                                <button type="button" class="btn btn-warning btn-sm" title="Edit">
-                                                    <i class="ri-pencil-line"></i>
-                                                </button>
-                                            </a>
+                                                <a href="{{ route('peminjaman.edit', $item->id_peminjaman) }}">
+                                                    <button type="button" class="btn btn-warning btn-sm"
+                                                        title="Edit">
+                                                        <i class="ri-pencil-line"></i>
+                                                    </button>
+                                                </a>
                                             @endif
                                         </td>
                                     </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <!-- End small tables -->
+
                     </div>
                 </div>
             </div>

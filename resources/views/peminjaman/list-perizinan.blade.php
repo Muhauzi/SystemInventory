@@ -22,10 +22,42 @@
             <div class="py-8">
                 <x-alert></x-alert>
 
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
-                        <div class="table-responsive">
-                            <table class="table table-data text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tabel Izin Peminjaman</h5>
+                        <div class="mb-4">
+                            <h6>Batas Nominal : Rp.{{ number_format($batasPeminjaman->batas_nominal, 0, ',', '.') }}</h6>
+                            <!-- Button trigger modal -->
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateBatasNominalModal">
+                                Update Batas Nominal
+                            </button>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="updateBatasNominalModal" tabindex="-1" aria-labelledby="updateBatasNominalModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ route('peminjaman.updateBatasPeminjaman', $batasPeminjaman->id) }}" method="POST">
+                                            @csrf
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="updateBatasNominalModalLabel">Update Batas Nominal</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="batas_nominal" class="form-label">Batas Nominal</label>
+                                                    <input type="number" class="form-control" id="batas_nominal" name="batas_nominal" value="{{ $batasPeminjaman->batas_nominal }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <table class="table table-data table-hover">
                                 <thead>
                                     <tr>
                                         <th scope="col">Kode Peminjaman</th>

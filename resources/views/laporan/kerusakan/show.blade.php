@@ -29,10 +29,10 @@
             <div class="col-lg-6">
                 <div class="row">
                     @foreach ($bukti_kerusakan as $foto)
-                    <div class="col">
+                    <div class="col-4">
                         <button type="button" class="btn btn-link" data-bs-toggle="modal"
                             data-bs-target="#modal{{ $foto['id'] }}">
-                            <img src="{{ asset('storage/buktiKerusakan/' . $foto['foto']) }}" class="img-thumbnail" alt="...">
+                            <img src="{{ asset('storage/bukti_kerusakan/' . $foto['foto']) }}" class="img-thumbnail" alt="...">
                         </button>
                     </div>
                     @endforeach
@@ -93,7 +93,7 @@
                                 <td>Biaya Perbaikan</td>
                                 <td>:</td>
                                 <td>
-                                    @if ($tagihan->total_tagihan != null)
+                                    @if ($tagihan && $tagihan->total_tagihan != null)
                                     Rp. {{ number_format($tagihan->total_tagihan) }}
                                     @else
                                     -
@@ -104,14 +104,14 @@
                                 <td>Status Tagihan</td>
                                 <td>:</td>
                                 <td>
-                                    @if ($tagihan->status == null)
+                                    @if ($tagihan && $tagihan->status == null)
                                     <span class="badge bg-warning">Belum Dibuat</span>
-                                    @elseif ($tagihan->status == 'Belum Lunas')
+                                    @elseif ($tagihan && $tagihan->status == 'Belum Lunas')
                                     <span class="badge bg-warning">Belum Lunas</span>
-                                    @elseif ($tagihan->status == 'capture' || $tagihan->status == 'settlement')
+                                    @elseif ($tagihan && ($tagihan->status == 'capture' || $tagihan->status == 'settlement'))
                                     <span class="badge bg-success">Lunas</span>
                                     @else
-                                    <span class="badge bg-danger">{{ $tagihan->status }}</span>
+                                    <span class="badge bg-danger">{{ $tagihan->status ?? 'Tidak Diketahui' }}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -131,7 +131,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <img src="{{ asset('storage/buktiKerusakan/' . $foto['foto']) }}" class="img-thumbnail" alt="...">
+                    <img src="{{ asset('storage/bukti_kerusakan/' . $foto['foto']) }}" class="img-thumbnail" alt="...">
                 </div>
             </div>
         </div>

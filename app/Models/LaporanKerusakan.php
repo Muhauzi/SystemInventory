@@ -62,9 +62,8 @@ class LaporanKerusakan extends Model
             ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('users_detail', 'users.id', '=', 'users_detail.user_id')
-            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'users.*', 'users_detail.*')
             ->where('laporan_kerusakan.id', $id)
+            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'users.*')
             ->first();
         return $data;
     }
@@ -88,6 +87,45 @@ class LaporanKerusakan extends Model
             ->join('kategori_barang', 'kategori_barang.id_kategori', '=', 'barang.id_kategori')
             ->select('laporan_kerusakan.id as id_laporan', 'laporan_kerusakan.*', 'tagihan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'kategori_barang.*')
             ->get();
+        return $data;
+    }
+
+    
+
+    public function laporanKerusakanByBulan($bulan)
+    {
+        $data = DB::table('laporan_kerusakan')
+            ->join('tagihan_kerusakan', 'laporan_kerusakan.id', '=', 'tagihan_kerusakan.id_laporan_kerusakan')
+            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'peminjaman.*', 'users.*', 'kategori_barang.*', 'laporan_kerusakan.created_at as created_at_laporan', 'tagihan_kerusakan.*', 'tagihan_kerusakan.status as status_pembayaran')
+            ->whereMonth('laporan_kerusakan.created_at', $bulan)
+            ->get();
+        if (count($data) == 0) {
+            return false;
+        }
+        return $data;
+    }
+
+    public function laporanKerusakanByTahun($tahun)
+    {
+        $data = DB::table('laporan_kerusakan')
+            ->join('tagihan_kerusakan', 'laporan_kerusakan.id', '=', 'tagihan_kerusakan.id_laporan_kerusakan')
+            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
+            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->join('users', 'peminjaman.id_user', '=', 'users.id')
+            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
+            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'peminjaman.*', 'users.*', 'kategori_barang.*', 'laporan_kerusakan.created_at as created_at_laporan', 'tagihan_kerusakan.*', 'tagihan_kerusakan.status as status_pembayaran')
+            ->whereYear('laporan_kerusakan.created_at', $tahun)
+            ->get();
+        // if data not found
+        if (count($data) == 0) {
+            return false;
+        }
         return $data;
     }
 }
