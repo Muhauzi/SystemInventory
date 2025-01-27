@@ -98,7 +98,7 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE).
 ## Kontak
 
 Jika Anda memiliki pertanyaan atau saran, silakan hubungi:  
-- **Nama**: [Nama Anda]  
-- **Email**: [email@example.com]  
-- **GitHub**: [https://github.com/username](https://github.com/username)
+- **Nama**: Muhamad Fauzi
+- **Email**: fauzimuhamad511@gmail.com
+- **GitHub**: [Muhauzi](https://github.com/Muhauzi)
 
