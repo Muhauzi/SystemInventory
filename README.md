@@ -32,11 +32,11 @@ Inventory Management System adalah aplikasi berbasis web yang dibangun menggunak
 
 1. Clone repositori ini ke lokal Anda:
    ```bash
-   git clone https://github.com/username/project-name.git
+   git clone https://github.com/Muhauzi/SystemInventory.git
    ```
 2. Masuk ke direktori proyek:
    ```bash
-   cd project-name
+   cd SystemInventory
    ```
 3. Instal dependensi menggunakan Composer:
    ```bash
