@@ -1,6 +1,6 @@
-# Project Name
+# Inventory Management System
 
-Project Name adalah aplikasi berbasis web yang dibangun menggunakan [Laravel](https://laravel.com/). Aplikasi ini bertujuan untuk mengelola barang inventaris perusahaan, peminjaman inventaris, laporan barang invetaris, peminjaman barang inventaris, laporan kerusakan barang dan penagihan kerusakan dengan API Midtrans.
+Inventory Management System adalah aplikasi berbasis web yang dibangun menggunakan [Laravel](https://laravel.com/). Aplikasi ini bertujuan untuk mengelola barang inventaris perusahaan, peminjaman inventaris, laporan barang invetaris, peminjaman barang inventaris, laporan kerusakan barang dan penagihan kerusakan dengan API Midtrans.
 
 ## Fitur
 
@@ -11,10 +11,11 @@ Project Name adalah aplikasi berbasis web yang dibangun menggunakan [Laravel](ht
 - **Laporan Peminjaman**: Log Peminjaman dan pengembalian, export laporan menjadi excel.
 - **Laporan Kerusakan Barang**: Data barang dengan status rusak saat dikembalikan, membuat penagihan kerusakan kepada peminjam.
 - **Integrasi Pembayaran Tagihan**: Pembayaran tagihan kerusakan dengan Midtrans.
+- **Return Reminder**: Email pengingat otomatis dikirimkan kepada peminjam h-3 tenggat pengembalian.
 
 ## Teknologi yang Digunakan
 
-- **Framework**: Laravel 10
+- **Framework**: Laravel 11
 - **Database**: MySQL
 - **Frontend**: Blade (Laravel Template Engine), Bootstrap
 - **Server**: Apache/Nginx
@@ -45,7 +46,7 @@ Project Name adalah aplikasi berbasis web yang dibangun menggunakan [Laravel](ht
    ```bash
    cp .env.example .env
    ```
-5. Atur konfigurasi database di file `.env`.
+5. Atur konfigurasi database, midtrans gateway, dan smtp di file `.env`.
 
 6. Generate application key:
    ```bash
