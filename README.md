@@ -23,7 +23,7 @@ Inventory Management System adalah aplikasi berbasis web yang dibangun menggunak
 
 ## Persyaratan Sistem
 
-- PHP >= 8.1
+- PHP >= 8.3
 - Composer
 - MySQL >= 8.0
 - Node.js >= 16 (untuk pengelolaan aset)
