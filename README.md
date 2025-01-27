@@ -19,7 +19,7 @@ Inventory Management System adalah aplikasi berbasis web yang dibangun menggunak
 - **Database**: MySQL
 - **Frontend**: Blade (Laravel Template Engine), Bootstrap
 - **Server**: Apache/Nginx
-- **Tools Lainnya**: Composer, Artisan CLI, dan Laravel Mix.
+- **Tools Lainnya**: Composer, Artisan CLI, PHPWord, PHPExcel, dan Laravel Mix.
 
 ## Persyaratan Sistem
 
