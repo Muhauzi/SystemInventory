@@ -32,6 +32,10 @@
                                 <label for="name" class="form-label">Nama Kategori</label>
                                 <input type="text" class="form-control" id="name" name="nama_kategori">
                             </div>
+                            <div class="mb-3">
+                                <label for="kode" class="form-label">Kode Kategori</label>
+                                <input type="text" class="form-control" id="kode" name="kode_kategori">
+                            </div>
                             <button type="submit" onclick="confirmModal()" class="btn btn-primary">Tambah</button>
                         </form>
                     </div>

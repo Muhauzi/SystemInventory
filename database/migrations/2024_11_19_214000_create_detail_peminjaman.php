@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('detail_peminjaman', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_peminjaman')->constrained('peminjaman', 'id_peminjaman');
-            $table->foreignId('id_barang')->constrained('barang', 'id_barang');
+            $table->string('id_barang');
+            $table->foreign('id_barang')->references('id_barang')->on('barang');
             $table->timestamps();
         });
     }

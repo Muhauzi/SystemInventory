@@ -2,23 +2,23 @@
 
     <x-slot name="title">
         {{
-            $title ?? 'Izin Peminjaman'
+            $title ?? 'Konfirmasi Peminjaman'
         }}
     </x-slot>
 
     <x-pagetittle>
         {{
-            $title ?? 'Izin Peminjaman'
+            $title ?? 'Konfirmasi Peminjaman'
         }}
     </x-pagetittle>
 
     <div class="pagetitle">
-        <h1>Profile</h1>
+        <h1>List Konfirmasi Peminjaman</h1>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item">Menu Pimpinan</li>
-                <li class="breadcrumb-item active">List Izin Peminjaman</li>
+                <li class="breadcrumb-item active">List Konfirmasi Peminjaman</li>
             </ol>
         </nav>
     </div><!-- End Page Title -->
@@ -26,10 +26,10 @@
     <section>
         <div class="container mx-auto px-4 sm:px-8">
             <div class="py-8">
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
-                        <div class="table-responsive">
-                            <table class="table table-data text-center">
+                <div class="card">
+                    <div class="card-body table-responsive">
+                        <h5 class="card-title">Tabel Izin Peminjaman</h5>
+                        <table class="table table-responsive table-data table-hover">
                                 <thead>
                                     <tr>
                                         <th scope="col">Kode Peminjaman</th>

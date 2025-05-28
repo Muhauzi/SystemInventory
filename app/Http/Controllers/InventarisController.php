@@ -6,10 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\Inventaris;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\KategoriBarang;
+use Illuminate\Support\Facades\Storage;
+use App\Models\DetailPeminjaman;
 
 class InventarisController extends Controller
 {
-    protected $inventaris;
+    protected $inventaris, $m_kategori;
+
+    function __construct()
+    {
+        $this->inventaris = new Inventaris();
+        $this->m_kategori = new KategoriBarang();
+    }
 
     public function index()
     {
@@ -21,13 +29,19 @@ class InventarisController extends Controller
 
     public function barangByKategori($id)
     {
-        $inventaris = Inventaris::where('id_kategori', $id)->get(); // Mengambil data inventaris berdasarkan kategori
+        $inventaris = Inventaris::where('id_kategori', $id)->get()->sortByDesc('tgl_pembelian'); // Mengambil data inventaris berdasarkan kategori
         $kategori = KategoriBarang::all(); // Mengambil data kategori barang
 
-        return view('inventaris.list', compact('inventaris', 'kategori')); // Menampilkan halaman list inventaris
+        // dd($inventaris); // Debugging untuk melihat data inventaris
+
+        $modelDetailPeminjaman = new DetailPeminjaman();
+        $isBorrowed = $modelDetailPeminjaman->isBorrowed();
+
+
+        return view('inventaris.list', compact('inventaris', 'kategori', 'isBorrowed')); // Menampilkan halaman list inventaris
     }
 
-    public function scanQR(Request $request)
+    public function scanQR(Request $request) // untuk scan qr mencari barang melalui qr
     {
         $id_barang = $request->id_barang; // Mengambil id barang dari form
 
@@ -46,7 +60,56 @@ class InventarisController extends Controller
         $inventaris = Inventaris::find($id); // Mengambil data inventaris berdasarkan id
         $kategori = KategoriBarang::all(); // Mengambil data kategori barang
 
+        if (!$inventaris) { // Jika data inventaris tidak ditemukan
+            return redirect()->back()
+                ->with('error', 'Barang Inventaris Tidak Ditemukan.');
+        }
+
+        if (empty($inventaris->qr_code) || !Storage::exists('public/qrcodes/' . $inventaris->qr_code)) { 
+            // Jika qr_code kosong atau file qrcode tidak ditemukan
+            $this->generateAndSaveQRCode($inventaris); // Generate dan simpan qrcode
+        }
+
         return view('inventaris.show', compact('inventaris', 'kategori')); // Menampilkan halaman detail inventaris
+    }
+
+    private function generateAndSaveQRCode($inventaris)
+    {
+        $qrCodePath = 'qrcodes/' . $inventaris->id_barang . '.png'; // Path untuk menyimpan qrcode
+        $fullPath = storage_path('app/public/' . $qrCodePath); // Full path untuk menyimpan qrcode
+
+        if (!file_exists(dirname($fullPath))) { // Membuat folder jika tidak ada
+            mkdir(dirname($fullPath), 0755, true); // Membuat folder
+        }
+
+        QrCode::format('png')->size(200)->generate($inventaris->id_barang, $fullPath); // Membuat qrcode dengan format png
+
+        $fileQr = basename($qrCodePath); // Mengambil nama file qrcode
+
+        // Memindahkan hasil generate qr ke public
+        $publicPath = public_path('img/qr/barang/' . $fileQr);
+        if (!file_exists(dirname($publicPath))) { // Memeriksa apakah folder sudah ada, jika tidak maka membuat folder
+            mkdir(dirname($publicPath), 0755, true); // Membuat folder
+        }
+        copy($fullPath, $publicPath); // Memindahkan file ke folder public
+
+        $inventaris->update([
+            'qr_code' => $fileQr, // Update qr_code pada database
+        ]);
+    }
+
+    public function search(Request $request) // Fungsi untuk mencari barang
+    {
+        $search = $request->input('search'); // Mengambil inputan pencarian
+        $kategori = KategoriBarang::all(); // Mengambil data kategori barang
+
+        if ($search) { // Jika ada inputan pencarian
+            $inventaris = Inventaris::where('nama_barang', 'like', '%' . $search . '%')->get(); // Mencari data inventaris berdasarkan nama barang
+        } else {
+            $inventaris = Inventaris::all(); // Mengambil semua data inventaris
+        }
+
+        return view('inventaris.index', compact('inventaris', 'kategori')); // Menampilkan halaman index inventaris
     }
 
     public function create()
@@ -76,8 +139,15 @@ class InventarisController extends Controller
             'deskripsi_barang.required' => 'Deskripsi barang harus diisi.',
         ]); // Validasi form
 
+        if($request->id_kategori == "Pilih...") { // Jika kategori tidak dipilih
+            return redirect()->back()
+                ->withInput($request->all())
+                ->with('error', 'Kategori barang harus dipilih.');
+        }
+        // dd($request->all()); // Debugging untuk melihat data yang diinputkan
 
-        $gambar = $request->file('foto_barang')->storePublicly('inventaris', 'public'); // Menyimpan gambar ke storage
+
+        $gambar = $request->file('foto_barang')->move('img/inventaris', $request->file('foto_barang')->getClientOriginalName()); // Menyimpan gambar ke storage
         if (!$gambar) { // Jika gagal menyimpan gambar
             return redirect()->back()
                 ->with('error', 'Gambar barang gagal diupload.');
@@ -89,6 +159,7 @@ class InventarisController extends Controller
             'status_barang' => 'Tersedia',
             'kondisi' => 'Baik',
             'foto_barang' => $namaGambar,
+            'jenis_barang' => $request->jenis_barang,
             'harga_barang' => $request->harga_barang,
             'tgl_pembelian' => $request->tgl_pembelian,
             'id_kategori' => $request->id_kategori,
@@ -97,44 +168,54 @@ class InventarisController extends Controller
 
         if ($request->jumlah_barang > 1) { //pengulangan untuk membuat barang sebanyak jumlah_barang
             for ($i = 0; $i < $request->jumlah_barang; $i++) {
-                $data['id_barang'] = rand(1000, 9999); // Membuat id secara acak agar unique
-                
-                if (Inventaris::where('id_barang', $data['id_barang'])->exists()) {
-                    $data['id_barang'] = rand(1000, 9999); // mengacak ulang jika id sudah ada
-                }
+            // dd($request->id_kategori);
+            $kode_kategori = $this->m_kategori->getKodeKategori($request->id_kategori); // Mengambil kode kategori
+            $data['id_barang'] = $kode_kategori . '-' . rand(1000, 99999); // Membuat id barang dengan format kode kategori-unique
 
-                $inv = Inventaris::create($data); // Memasukkan data ke database
-                $qrCodePath = 'qrcodes/' . $inv->id_barang . '.png'; // Path untuk menyimpan qrcode
-                $fullPath = storage_path('app/public/' . $qrCodePath); // Full path untuk menyimpan qrcode
-
-                if (!file_exists(dirname($fullPath))) { // Membuat folder jika tidak ada
-                    mkdir(dirname($fullPath), 0755, true); // Membuat folder
-                }
-
-                QrCode::format('png')->size(200)->generate($inv->id_barang, $fullPath); // Membuat qrcode dengan format png 
-
-                $fileQr = basename($qrCodePath); // Mengambil nama file qrcode
-
-                $inv->update([
-                    'qr_code' => $fileQr, // Update qr_code pada database
-                ]);
+            if (Inventaris::where('id_barang', $data['id_barang'])->exists()) {
+                $i--; // Jika id barang sudah ada, ulangi
+                continue; // Lanjutkan ke iterasi berikutnya
             }
-        } else { // Jika jumlah barang hanya 1
-            $inv = Inventaris::create($data); // Memasukkan data ke database
 
+            $inv = Inventaris::create($data); // Memasukkan data ke database
             $qrCodePath = 'qrcodes/' . $inv->id_barang . '.png'; // Path untuk menyimpan qrcode
             $fullPath = storage_path('app/public/' . $qrCodePath); // Full path untuk menyimpan qrcode
 
-            if (!file_exists(dirname($fullPath))) { // Memeriksa apakah folder sudah ada, jika tidak maka membuat folder
+            if (!file_exists(dirname($fullPath))) { // Membuat folder jika tidak ada
                 mkdir(dirname($fullPath), 0755, true); // Membuat folder
             }
 
-            QrCode::format('png')->size(200)->generate($inv->id_barang, $fullPath); // Membuat qrcode dengan format png
+            QrCode::format('png')->size(200)->generate($inv->id_barang, $fullPath); // Membuat qrcode dengan format png menggunakan imagic
 
             $fileQr = basename($qrCodePath); // Mengambil nama file qrcode
 
             $inv->update([
                 'qr_code' => $fileQr, // Update qr_code pada database
+            ]);
+            }
+        } else { // Jika jumlah barang hanya 1
+            $kode_kategori = $this->m_kategori->getKodeKategori($request->id_kategori); // Mengambil kode kategori
+            
+            do {
+                $data['id_barang'] = $kode_kategori . '-' . rand(1000, 99999); // Membuat id barang dengan format kode kategori-unique
+            } while (Inventaris::where('id_barang', $data['id_barang'])->exists()); // Ulangi jika id_barang sudah ada di database
+            
+            $inv = Inventaris::create($data); // Memasukkan data ke database
+
+
+            $qrCodePath = 'qrcodes/' . $inv->id_barang . '.png'; // Path untuk menyimpan qrcode
+            $fullPath = storage_path('app/public/' . $qrCodePath); // Full path untuk menyimpan qrcode
+
+            if (!file_exists(dirname($fullPath))) { // Memeriksa apakah folder sudah ada, jika tidak maka membuat folder
+            mkdir(dirname($fullPath), 0755, true); // Membuat folder
+            }
+
+            QrCode::format('png')->size(200)->generate($inv->id_barang, $fullPath); // Membuat qrcode dengan format png menggunakan imagic
+
+            $fileQr = basename($qrCodePath); // Mengambil nama file qrcode
+
+            $inv->update([
+            'qr_code' => $fileQr, // Update qr_code pada database
             ]);
         }
 
@@ -179,7 +260,7 @@ class InventarisController extends Controller
 
         if (!$inventaris) { // Jika data inventaris tidak ditemukan
             return redirect()->route('inventaris.list')
-                ->with('error', 'Barang Inventaris Tidak Ditemukan.'); 
+                ->with('error', 'Barang Inventaris Tidak Ditemukan.');
         }
 
         $request->validate([
@@ -216,10 +297,11 @@ class InventarisController extends Controller
             'tgl_pembelian' => $request->tgl_pembelian,
             'id_kategori' => $request->id_kategori,
             'deskripsi_barang' => $request->deskripsi_barang,
+            'jenis_barang' => $request->jenis_barang,
         ]; // Data yang akan diupdate ke database dari form
 
         if ($request->foto_barang) { // Jika ada gambar yang diupload
-            $gambar = $request->file('foto_barang')->storePublicly('inventaris', 'public'); // Menyimpan gambar ke storage
+            $gambar = $request->file('foto_barang')->move('img/inventaris', $request->file('foto_barang')->getClientOriginalName()); // Menyimpan gambar ke storage
             if (!$gambar) { // Jika gagal menyimpan gambar
                 return redirect()->back()
                     ->with('error', 'Gambar barang gagal diupload.');
@@ -236,7 +318,7 @@ class InventarisController extends Controller
             }
 
             $data['foto_barang'] = $namaGambar; // Update gambar barang
-        } 
+        }
 
         $inventaris->update($data); // Update data inventaris
 
@@ -267,6 +349,4 @@ class InventarisController extends Controller
         return redirect()->route('inventaris.list', $kategori) // Redirect ke halaman list barang
             ->with('success', 'Barang Inventaris Berhasil Dihapus.');
     }
-
-
 }

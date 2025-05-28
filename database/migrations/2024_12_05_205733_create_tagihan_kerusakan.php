@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('id_laporan_kerusakan')->constrained('laporan_kerusakan', 'id')->onDelete('cascade');
             $table->string('status');
             $table->integer('total_tagihan');
-            $table->string('token');
-            $table->string('payment_url');
+            $table->string('token')->nullable();
+            $table->string('payment_url')->nullable();
             $table->timestamps();
         });
     }

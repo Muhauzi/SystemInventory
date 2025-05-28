@@ -38,6 +38,12 @@
             padding: 10px;
             border-radius: 5px;
         }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
         a.button {
             display: inline-block;
             padding: 10px 20px;
@@ -92,16 +98,22 @@
 <body>
     <div class="container">
         <h1>Tagihan Kerusakan Barang</h1>
-        <p>Yth. {{ $tagihan->name }},</p>
+        <p>Yth. {{ $data['name'] }},</p>
         <p>Kami ingin memberitahukan bahwa Anda memiliki tagihan kerusakan barang sebagai berikut:</p>
         <ul>
-            <li>Nama Barang: {{ $tagihan->nama_barang }}</li>
-            <li>Total Biaya: Rp {{ number_format($tagihan->total_tagihan, 0, ',', '.') }}</li>
-            <li>Deskripsi Kerusakan: {{ $tagihan->deskripsi_kerusakan }}</li>
+            <li>ID Peminjaman: {{ $data['id_peminjaman'] }}</li>
+            <li>Nama Barang: {{ $data['nama_barang'] }}</li>
+            <li>Total Biaya: Rp {{ number_format($data['total_tagihan'], 0, ',', '.') }}</li>
+            <li>Deskripsi Kerusakan: {{ $data['deskripsi_kerusakan'] }}</li>
         </ul>
-        <p>Bayar disini :</p>
-        <a href="{{ $tagihan->payment_url }}" class="button">Bayar Tagihan</a>
+        <p>Berikut adalah nota perbaikan barang:</p>
+        <img src="{{ asset('storage/nota_perbaikan/' . $data['nota_perbaikan']) }}" alt="Nota Perbaikan">
+        <p><strong>Catatan:</strong> Anda tidak dapat meminjam barang lain sebelum menyelesaikan tagihan ini.</p>
+        <p>Silahkan melakukan pembayaran melalui website kami pada menu tagihan kerusakan.</p>
+        <p>Untuk melakukan pembayaran, silahkan klik tombol di bawah ini:</p>
+        <a href="{{ url('/user/tagihan_kerusakan') }}" class="button">Bayar Sekarang</a>
         <p>Mohon untuk segera melakukan pembayaran.</p>
+        <p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, jangan ragu untuk menghubungi kami.</p>
         <p>Terima kasih atas perhatian dan kerjasamanya.</p>
         <p>Salam,</p>
         <p>Tim Inventaris</p>
@@ -109,3 +121,4 @@
 </body>
 
 </html>
+

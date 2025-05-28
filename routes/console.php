@@ -11,12 +11,9 @@ use Illuminate\Support\Facades\Log;
 
 // shcedule to send reminder via email
 Schedule::command('send:return-reminders')
-    ->dailyAt('20:17')
-    ->timezone('Asia/Jakarta')  
-    ->withoutOverlapping()
-    ->onOneServer()
-    ->runInBackground();
-
+    ->everyMinute();
+Schedule::command('send:denda-reminders')
+    ->everyMinute();
 
 
 

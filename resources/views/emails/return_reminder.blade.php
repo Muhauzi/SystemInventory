@@ -62,7 +62,7 @@
         <p>Harap kembalikan barang tersebut pada atau sebelum tanggal jatuh tempo.</p>
         <p>Terima kasih.</p>
         <p>Hormat kami,</p>
-        <p>Sistem Manajemen Inventaris</p>
+        <p>Sistem Informasi Inventaris Barang</p>
         <p><small>Ini adalah pesan otomatis. Mohon tidak membalas email ini.</small></p>
         <p><small>&copy; 2021 Sistem Manajemen Inventaris. Semua hak dilindungi undang-undang.</small></p>
     </div>

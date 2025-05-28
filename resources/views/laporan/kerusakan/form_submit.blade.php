@@ -45,7 +45,7 @@
                                             <textarea class="form-control" id="keterangan" name="deskripsi_kerusakan" rows="3"></textarea>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="foto" class="form-label">Bukti Kerusakan</label>
+                                            <label for="foto" class="form-label">Bukti Kerusakan Barang</label>
                                             <input class="form-control" type="file" id="foto" name="foto_kerusakan[]" multiple accept="image/*" >
                                         </div>
                                         <button type="submit" class="btn btn-primary">Submit</button>

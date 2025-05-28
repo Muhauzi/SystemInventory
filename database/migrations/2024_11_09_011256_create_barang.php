@@ -8,9 +8,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('barang', function (Blueprint $table) {
-            $table->id('id_barang');
+            $table->string('id_barang')->primary();
             $table->string('nama_barang');
             $table->string('status_barang');
+            $table->string('jenis_barang');
             $table->string('kondisi');
             $table->text('qr_code')->nullable();
             $table->text('foto_barang')->nullable();
@@ -20,6 +21,8 @@ return new class extends Migration {
             $table->foreignId('id_kategori')->constrained('kategori_barang', 'id_kategori');
             $table->timestamps();
         });
+
+
     }
 
     public function down(): void

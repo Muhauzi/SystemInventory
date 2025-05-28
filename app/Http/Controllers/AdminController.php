@@ -2,14 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Peminjaman;
 use Illuminate\Http\Request;
-use App\Models\User; // Pastikan untuk menambahkan ini
+use App\Models\User; 
+use App\Models\Inventaris; 
+use App\Models\DetailPeminjaman;
+use App\Models\m_tagihan;
+use App\Http\Controllers\UsersController;
+use App\Models\M_pengajuan;
 
-class AdminController extends Controller
-{
+class AdminController extends Controller {
+    
     public function index()
     {
-        return view('admin.dashboard');
+        $modelPeminjaman = new Peminjaman();
+        $modelInventaris = new Inventaris();
+        $modelUser = new User();
+        $modelPengajuan = new M_pengajuan();
+
+        $dataPeminjaman = $modelPeminjaman->dataPeminjaman();
+        $dataInventaris = $modelInventaris->getInventarisKategori();
+        $dataUser = $modelUser->all();
+        $dataPengajuan = $modelPengajuan->where('status_pengajuan', 'Pending')->get();
+
+        $jumlahBarangByKategori = $dataInventaris->groupBy('nama_kategori')->map(function ($item) {
+            return $item->count();
+        }); 
+        $modelDetailPeminjaman = new DetailPeminjaman();
+        $barangDikembalikan = $modelDetailPeminjaman->getBarangDikembalikan(); 
+        $barangDipinjam = $modelDetailPeminjaman->getBarangDipinjam();
+        // dd($barangDipinjam);
+
+        return view('admin.dashboard', compact('dataPeminjaman', 'dataInventaris', 'dataUser', 'jumlahBarangByKategori', 'barangDikembalikan', 'barangDipinjam', 'dataPengajuan'));
     }
 
     public function kelola_user()
@@ -43,5 +67,18 @@ class AdminController extends Controller
     public function kelola_inventaris()
     {
         return view('admin.kelola_inventaris');
+    }
+
+    
+    public function tagihanDenda()
+    {
+        $tagihan = m_tagihan::all(); // Mengambil data transaksi dari UsersController
+        foreach ($tagihan as $item) { // Looping data tagihan
+            $usersController = new UsersController();
+            $status = $usersController->getTransactionStatus($item->id); // Mengambil status tagihan dari UsersController
+            // dd($status);
+            $item->status_tagihan = $status['transaction_status'] ?? 'unknown'; // Menambahkan status tagihan ke dalam data tagihan
+        }
+        return view('tagihan.denda.index', compact('tagihan'));
     }
 }

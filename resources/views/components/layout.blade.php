@@ -31,6 +31,13 @@
   <link href="{{asset('NiceAdmin/assets/vendor/simple-datatables/style.css')}}" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
+  <!-- Select2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+  <!-- Select2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
 
 
   <!-- Template Main CSS File -->
@@ -44,6 +51,7 @@
     {{$slot}}
   </main>
   <x-footer></x-footer>
+  <x-alert></x-alert>
 </body>
 
 <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
@@ -67,6 +75,7 @@
 
 <!-- Template Main JS File -->
 <script src="{{asset('NiceAdmin/assets/js/main.js')}}"></script>
+
 
 </body>
 

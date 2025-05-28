@@ -16,11 +16,19 @@
     </div><!-- End Page Title -->
 
     <div class="d-flex justify-content-end mb-3">
-        <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
-            <button type="button" class="btn btn-primary my-2 btn-icon-text">
-                <i class="ri-arrow-go-back-fill"></i> Kembali
-            </button>
-        </a>
+        @if (auth()->user()->role == 'admin')
+            <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
+                <button type="button" class="btn btn-secondary my-2 btn-icon-text">
+                    <i class="ri-arrow-go-back-fill"></i> Kembali
+                </button>
+            </a>      
+        @else
+            <a href="{{ route('user.barangTersedia') }}">
+                <button type="button" class="btn btn-secondary my-2 btn-icon-text">
+                    <i class="ri-arrow-go-back-fill"></i> Kembali
+                </button>
+            </a>      
+        @endif
     </div>
     <div class="card">
         <div class="card-body p-4">
@@ -28,7 +36,7 @@
                 <div class="col-md-6">
                     <h3>Gambar Barang</h3>
                     <div class="frame">
-                        <img src="{{ Storage::url('inventaris/' . $inventaris->foto_barang)}}" alt="Gambar" width="400px">
+                        <img src="{{ asset('img/inventaris/' . $inventaris->foto_barang) }}" alt="Gambar" width="400px">
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -41,6 +49,10 @@
                         <tr>
                             <th>Nama Barang</th>
                             <td>{{ $inventaris->nama_barang }}</td>
+                        </tr>
+                       <tr>
+                            <th>Deskripsi & Spesifikasi Barang</th>
+                            <td>{!! nl2br(e($inventaris->deskripsi_barang)) !!}</td>
                         </tr>
                         <tr>
                             <th>Status Barang</th>
@@ -72,14 +84,19 @@
                                 @endif
                             </td>
                         </tr>
+                        @if (auth()->user()->role == 'admin')
                         <tr>
                             <th>Tanggal Pembelian</th>
                             <td>{{ $inventaris->tgl_pembelian }}</td>
                         </tr>
+                        @endif
+                        
+                        
                         <tr>
                             <th>Harga Barang</th>
                             <td>Rp. {{ number_format($inventaris->harga_barang, 0, ',', '.') }}</td>
                         </tr>
+                        
                         <tr>
                             <th>Kategori</th>
                             <td>
@@ -90,15 +107,20 @@
                                 @endforeach
                             </td>
                         </tr>
+                        <tr>
+                            <th>Jenis Barang</th>
+                            <td>{{ $inventaris->jenis_barang }}</td>
+                        </tr>
 
                     </table>
 
+                    @if (auth()->user()->role == 'admin')
                     <h3>QR Code</h3>
                     <div class="frame">
                         @if ($inventaris->qr_code)
-                        <img src="{{ Storage::url('qrcodes/' . $inventaris->qr_code) }}" alt="QR Code" width="200px">
+                        <img src="{{ asset('img/qr/barang/' . $inventaris->qr_code) }}" alt="QR Code" width="200px">
                         <br>
-                        <a href="{{ Storage::url('qrcodes/' . $inventaris->qr_code) }}" download="{{ $inventaris->id_barang . ' | ' . $inventaris->nama_barang }}.png">
+                        <a href="{{ asset('img/qr/barang/' . $inventaris->qr_code) }}" download="{{ $inventaris->id_barang . ' | ' . $inventaris->nama_barang }}">
                             <button class="btn btn-info mt-2 text-white">
                                 <i class="ri-download-2-fill"></i> Download QR Code
                             </button>
@@ -112,6 +134,7 @@
                         </a>
                         @endif
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

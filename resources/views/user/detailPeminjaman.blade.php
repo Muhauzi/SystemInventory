@@ -17,7 +17,7 @@
     <x-alert></x-alert>
 
     <div class="d-flex justify-content-end mb-3">
-        <a href="{{ route('peminjaman.index') }}">
+        <a href="{{ route('user.riwayat_peminjaman') }}">
             <button type="button" class="btn btn-primary my-2 btn-icon-text">
                 <i class="ri-arrow-go-back-line"></i> Kembali
             </button>
@@ -38,7 +38,7 @@
                                 <td>Nama Peminjam</td>
                                 <td>:</td>
                                 <td>
-                                    {{ $users->name }}
+                                    {{ $peminjaman->user->name }}
                                 </td>
                             </tr>
                             <tr>
@@ -59,8 +59,8 @@
                                 <td>Barang</td>
                                 <td>:</td>
                                 <td>
-                                    @foreach ($barang as $brg)
-                                        <li>{{ $brg->nama_barang }}</li>
+                                    @foreach ($peminjaman->detailPeminjaman as $detail)
+                                    <li>{{ $detail->barang->nama_barang ?? 'Barang tidak ditemukan' }}</li>
                                     @endforeach
                                 </td>
                             </tr>
@@ -82,16 +82,19 @@
                                     {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
                                 </td>
                             </tr>
-                            <tr>
-                                <td>Surat Bukti Peminjaman</td>
-                                <td>:</td>
-                                <td>
-                                    <a href="{{route('user.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
-                                        <button class="btn btn-sm btn-info text-light">
-                                            <i class="ri-file-download-line"></i> Download Bukti Peminjaman
-                                        </button>
-                                    </a>
-                                </td>
+                            <!--<tr>-->
+                            <!--    <td>Surat Bukti Peminjaman</td>-->
+                            <!--    <td>:</td>-->
+                            <!--    <td>-->
+                            <!--        <a href="{{ route('user.buktiPinjam', $peminjaman->id_peminjaman) }}"-->
+                            <!--            target="_blank">-->
+                            <!--            <button class="btn btn-sm btn-info text-light">-->
+                            <!--                <i class="ri-file-download-line"></i> Download Invoice Pengembalian-->
+                            <!--            </button>-->
+                            <!--        </a>-->
+                            <!--    </td>-->
+                            <!--</tr>-->
+                            </td>
                             </tr>
                         </table>
                     </div>

@@ -14,19 +14,19 @@
         </nav>
     </div><!-- End Page Title -->
     <!-- List tagihan yang dimiliki user -->
-    <section>
-        <div class="container mx-auto px-4 sm:px-8">
-            <div class="py-8">
-                <x-alert></x-alert>
-
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
-                        <div class="table-responsive">
-                            <table class="table table-data text-center">
-                                <thead>
+    <section class="section">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="card recent-sales overflow-auto">
+                    <div class="card-body">
+                        <h5 class="card-title">List Tagihan Kerusakan</h5>
+                        <div class="my-2 flex sm:flex-row flex-col">
+                            <div class="block relative">
+                            <table class="table table-borderless datatable table-hover">
+                                <thead style="background-color: rgba(233, 239, 248, 0.5);">
                                     <tr>
                                         <th scope="col">No</th>
-                                        <th scope="col">Nama Barang</th>
+                                        <th scope="col">ID Peminjaman</th>
                                         <th scope="col">Kerusakan</th>
                                         <th scope="col">Biaya Kerusakan</th>
                                         <th scope="col">Status</th>
@@ -37,37 +37,80 @@
                                     @foreach ($tagihan as $item)
                                     <tr>
                                         <th scope="row">{{ $loop->iteration }}</th>
-                                        <td>{{ $item->nama_barang }}</td>
-                                        <td>{{ $item->deskripsi_kerusakan }}</td>
+                                        <td>{{ $item->laporan_kerusakan->detailPeminjaman->peminjaman->id_peminjaman }}</td>
+                                        <td>{{ $item->laporan_kerusakan->deskripsi_kerusakan }}</td>
                                         <td>Rp{{ number_format($item->total_tagihan, 0, ',', '.') }} </td>
                                         <td>
                                             @if ($item->status_tagihan == 'capture' || $item->status_tagihan == 'settlement')
-                                            <span class="badge bg-success">Lunas</span>
+                                            <button type="button" class="btn btn-success" disabled>
+                                                <i class="bi bi-check-circle-fill"></i> Lunas
+                                            </button>
                                             @elseif ($item->status_tagihan == 'pending')
-                                            <span class="badge bg-warning">Menunggu Pembayaran</span>
+                                            <button type="button" class="btn btn-warning" disabled>
+                                                <i class="bi bi-hourglass-split"></i> Menunggu Pembayaran
+                                            </button>
                                             @else
-                                            <span class="badge bg-danger">{{ $item->status_tagihan }}</span>
+                                                @if($item->status_tagihan == 'not_found')
+                                                <button type="button" class="btn btn-danger" disabled>
+                                                    <i class="bi bi-x-circle"></i> Pembayaran Belum Dibuat
+                                                </button>
+                                                @elseif($item->status_tagihan == 'expire')
+                                                <button type="button" class="btn btn-danger" disabled>
+                                                    <i class="bi bi-clock-history"></i> Pembayaran Kadaluarsa
+                                                </button>
+                                                @else
+                                                <button type="button" class="btn btn-danger" disabled>
+                                                    <i class="bi bi-x-info"></i> {{$item->status_tagihan}}
+                                                </button>
+                                                @endif
                                             @endif
                                         </td>
+                                        
                                         <td>
-                                            @if ($item->status_tagihan == 'capture' || $item->status_tagihan == 'settlement')
-                                            <button type="button" class="btn btn-success btn-sm" title="Tagihan Lunas">
-                                                <i class="fas fa-check"></i>
-                                                Lunas
-                                            </button>
-                                            @elseif ($item->status_tagihan == 'pending')
-                                            <a href="{{ $item->payment_url }}">
-                                                <button type="button" class="btn btn-info btn-sm" title="Bayar Tagihan">
-                                                    <i class="fas fa-money-bill-wave"></i>
-                                                    Bayar Tagihan
+                                            <div class="payment-button">
+                                                @if ($item->status == 'capture' || $item->status == 'settlement')
+                                                <button type="button" class="btn btn-success btn-sm text-white" title="Tagihan Lunas">
+                                                    <i class="bi bi-check-fill"></i>
+                                                    Lunas
                                                 </button>
-                                            </a>
-                                            @else
-                                            <button type="button" class="btn btn-danger btn-sm" title="Tagihan Dibatalkan">
-                                                <i class="fas fa-times"></i>
-                                                $item->status_tagihan
-                                            </button>
-                                            @endif
+                                                @elseif ($item->payment_url != null && $item->status_tagihan != 'expire')
+                                                <a href="{{ $item->payment_url }}" target="_blank" class="btn btn-success btn-sm text-white" title="Bayar Tagihan">
+                                                    <i class="bi bi-credit-card-fill"></i>
+                                                    Bayar Tagihan
+                                                </a>
+                                                @elseif ($item->payment_url == null)
+                                                <form action="{{ route('user.tagihan_kerusakan.bayar', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary btn-sm text-white" title="Buat Link Pembayaran">
+                                                        <i class="bi bi-credit-card-fill"></i>
+                                                        Buat Link Pembayaran
+                                                    </button>
+                                                </form>
+                                                @elseif($item->status_tagihan == 'expire')
+                                                <form action="{{ route('user.tagihan_kerusakan.bayar', $item->id) }}" method="POST">
+                                                    @csrf
+                                                    @if($item->status_tagihan == 'expire')
+                                                        <button type="submit" class="btn btn-info btn-sm text-white">
+                                                        <i class="bi bi-arrow-clockwise"></i> Perbarui Link Pembayaran</button>
+                                                    @else
+                                                        <button type="submit" class="btn btn-info btn-sm text-white">
+                                                        <i class="bi bi-credit-card-fill"></i>
+                                                            Buat Link Pembayaran</button>
+                                                    @endif
+                                                </form>
+                                                @else
+                                                <button type="button" class="btn btn-danger btn-sm text-white" title="Tagihan Dibatalkan">
+                                                    <i class="bi bi-times-fill"></i>
+                                                    {{ $item->status }}
+                                                </button>
+                                                @endif
+                                            </div>
+                                            <div class="detail-button">
+                                                <a href="{{ route('user.show.TagihanKerusakan', $item->id_laporan_kerusakan) }}" class="btn btn-info btn-sm text-white" title="Detail Kerusakan">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                    Detail
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     @endforeach

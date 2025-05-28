@@ -15,6 +15,7 @@ use Midtrans\Config;
 use Midtrans\Snap;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class LaporanKerusakanController extends Controller
 {
@@ -30,11 +31,13 @@ class LaporanKerusakanController extends Controller
         $this->ModelFotoKerusakan = new FotoKerusakan();
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
     }
 
     public function index()
     {
-        $laporan_kerusakan   = $this->ModelLaporan->getBarangKategori();
+        $laporan_kerusakan   = $this->ModelLaporan->getKategoriDanBarang();
         // dd( $laporan_kerusakan);
         $tagihan = TagihanKerusakan::all();
         return view('laporan.kerusakan.index', compact('laporan_kerusakan', 'tagihan'));
@@ -58,10 +61,8 @@ class LaporanKerusakanController extends Controller
 
     public function formSubmitKerusakan($id)
     {
-        $PeminjamanModel = new Peminjaman();
-        $id_detail = DetailPeminjaman::where('id_peminjaman', $id)->first();
         $ModelDetail = new DetailPeminjaman();
-        $dataPeminjam = $ModelDetail->getDetail($id_detail->id);
+        $dataPeminjam = $ModelDetail->getBarangByDetail($id);
 
         return view('laporan.kerusakan.form_submit', compact('dataPeminjam'));
     }
@@ -83,7 +84,7 @@ class LaporanKerusakanController extends Controller
             $files = $request->file('foto_kerusakan');
             foreach ($files as $file) {
                 $filename = $file->getClientOriginalName();
-                $file->storePublicly('buktiKerusakan', 'public');
+                $file->move('storage/buktiKerusakan', $filename);
                 $modelFotoKerusakan->create([
                     'id_laporan_kerusakan' => $id_laporan_kerusakan,
                     'foto' => $filename,
@@ -137,104 +138,116 @@ class LaporanKerusakanController extends Controller
 
     public function storeTagihan(Request $request)
     {
-        $request->validate([
-            'id_lk' => 'required|exists:laporan_kerusakan,id',
-            'biaya_perbaikan' => 'required|numeric',
-        ]
-        , [
-            'id_lk.required' => 'ID Laporan Kerusakan harus diisi.',
-            'id_lk.exists' => 'ID Laporan Kerusakan tidak ditemukan.',
-            'biaya_perbaikan.required' => 'Biaya perbaikan harus diisi.',
-            'biaya_perbaikan.numeric' => 'Biaya perbaikan harus berupa angka.',
-        ]);
+        // dd($request->all());
+        try {
+            $request->validate(
+                [
+                    'id_lk' => 'required|exists:laporan_kerusakan,id',
+                    'biaya_perbaikan' => 'required|numeric',
+                    'nota_perbaikan' => 'required|mimes:jpg,jpeg,png|max:2048',
+                ],
+                [
+                    'id_lk.required' => 'ID Laporan Kerusakan harus diisi.',
+                    'id_lk.exists' => 'ID Laporan Kerusakan tidak ditemukan.',
+                    'biaya_perbaikan.required' => 'Biaya perbaikan harus diisi.',
+                    'biaya_perbaikan.numeric' => 'Biaya perbaikan harus berupa angka.',
+                    'nota_perbaikan.mimes' => 'File nota perbaikan harus berupa jpg, jpeg, png.',
+                    'nota_perbaikan.max' => 'File nota perbaikan tidak boleh lebih dari 2MB.',
+                    'nota_perbaikan.required' => 'File nota perbaikan harus diunggah.',
+                ]
+            );
 
-        $idLK = $request->id_lk;  
-        $total_harga = $request->biaya_perbaikan;
-        $modelTagihan = new TagihanKerusakan();
-        if ($idLK = $modelTagihan->where('id_laporan_kerusakan', $idLK)->first()) {
-            return redirect()->back()->with('error', 'Tagihan sudah dibuat.');
+            $idLK = $request->id_lk;
+            $total_harga = $request->biaya_perbaikan;
+            $modelTagihan = new TagihanKerusakan();
+
+            if ($modelTagihan->where('id_laporan_kerusakan', $idLK)->first()) {
+                return redirect()->back()->with('error', 'Tagihan sudah dibuat.');
+            }
+
+            $dataInput = [
+                'id_laporan_kerusakan' => $idLK,
+                'total_tagihan' => $total_harga,
+                'status' => 'pending',
+            ];
+
+            $nota_pembayaran = $request->file('nota_perbaikan');
+            if ($nota_pembayaran) {
+                $filename = time() . '_' . $nota_pembayaran->getClientOriginalName();
+                $nota_pembayaran->move('storage/nota_perbaikan', $filename);
+                $dataInput['nota_perbaikan'] = $filename;
+            } else {
+                return redirect()->back()->with('error', 'Nota Perbaikan Gagal Diupload.');
+            }
+
+            $modelTagihan->create($dataInput);
+            $idTagihan = $modelTagihan->latest()->first()->id;
+            // dd($idTagihan);
+
+            $this->sendEmailPenagihan($idTagihan);
+
+            return redirect()->route('laporan_kerusakan.index')->with('success', 'Tagihan berhasil dibuat.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-        $dataInput = ([
-            'id_laporan_kerusakan' => $request->id_lk,
-            'total_tagihan' => $total_harga,
-            'status' => 'Belum Lunas',
-        ]);
-        // dd($data);
-        $modelTagihan->create($dataInput);
-        $idTagihan = $modelTagihan->latest()->first()->id;
-        $model_laporan = new LaporanKerusakan();
-        $data = $model_laporan->getPeminjaman($request->id_lk);
-        $params = [
-            'transaction_details' => [
-                'order_id' => $idTagihan,
-                'gross_amount' => $total_harga,
-            ],
-            'customer_details' => [
-                'first_name' => $data->name,
-                'email' => $data->email,
-                'phone' => $data->phone,
-            ],
-        ];
-        $paymentUrl = Snap::createTransaction($params)->redirect_url;
-        $snapToken = $snapToken = Snap::getSnapToken($params);
-        // dd($paymentUrl, $params);
-
-        $modelTagihan->where('id', $idTagihan)->update([
-            'token' => $snapToken,
-            'payment_url' => $paymentUrl,
-        ]);
-
-        $this->sendEmailPenagihan($idTagihan);
-
-        return redirect()->route('laporan_kerusakan.index')->with('success', 'Tagihan berhasil dibuat.');
     }
 
-    public function webhooks(Request $request)
-    {
-        $auth = base64_encode(env('MIDTRANS_SERVER_KEY'));
+    // public function webhooks(Request $request)
+    // {
+    //     $auth = base64_encode(env('MIDTRANS_SERVER_KEY'));
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Authorization' => "Basic $auth",
-        ])->get("https://api.sandbox.midtrans.com/v2/$request->order_id/status");
+    //     $response = Http::withHeaders([
+    //         'Content-Type' => 'application/json',
+    //         'Authorization' => "Basic $auth",
+    //     ])->get("https://api.sandbox.midtrans.com/v2/$request->order_id/status");
 
 
-        $response = json_decode($response->body());
+    //     $response = json_decode($response->body());
 
-        $tagihan = TagihanKerusakan::where('id', $request->order_id)->first();
+    //     $tagihan = TagihanKerusakan::where('id', $request->order_id)->first();
 
-        if ($tagihan->status == 'settlement' || $tagihan->status == 'capture') {
-            return response()->json('Payment has been already processed');
-        }
+    //     if ($tagihan->status == 'settlement' || $tagihan->status == 'capture') {
+    //         return response()->json('Payment has been already processed');
+    //     }
 
-        if ($response->transaction_status == 'capture') {
-            $tagihan->status = 'capture';
-        } elseif ($response->transaction_status == 'settlement') {
-            $tagihan->status = 'settlement';
-        } elseif ($response->transaction_status == 'pending') {
-            $tagihan->status = 'pending';
-        } elseif ($response->transaction_status == 'deny') {
-            $tagihan->status = 'deny';
-        } elseif ($response->transaction_status == 'cancel') {
-            $tagihan->status = 'cancel';
-        } elseif ($response->transaction_status == 'expire') {
-            $tagihan->status = 'expire';
-        } elseif ($response->transaction_status == 'refund') {
-            $tagihan->status = 'refund';
-        } else {
-            $tagihan->status = 'error';
-        }
-        $tagihan->save();
+    //     if ($response->transaction_status == 'capture') {
+    //         $tagihan->status = 'capture';
+    //     } elseif ($response->transaction_status == 'settlement') {
+    //         $tagihan->status = 'settlement';
+    //     } elseif ($response->transaction_status == 'pending') {
+    //         $tagihan->status = 'pending';
+    //     } elseif ($response->transaction_status == 'deny') {
+    //         $tagihan->status = 'deny';
+    //     } elseif ($response->transaction_status == 'cancel') {
+    //         $tagihan->status = 'cancel';
+    //     } elseif ($response->transaction_status == 'expire') {
+    //         $tagihan->status = 'expire';
+    //     } elseif ($response->transaction_status == 'refund') {
+    //         $tagihan->status = 'refund';
+    //     } else {
+    //         $tagihan->status = 'error';
+    //     }
+    //     $tagihan->save();
 
-        return response()->json(['status' => 'success']);
-    }
+    //     return response()->json(['status' => 'success']);
+    // }
 
     public function sendEmailPenagihan($id)
     {
         $tagihanModel = new TagihanKerusakan();
-        $tagihan = $tagihanModel->getLaporanPeminjaman($id);
-        // dd($tagihan);
-        Mail::to($tagihan->email)->send(new TagihanPenggantian($tagihan));
+        $tagihan = $tagihanModel->getTagihanKerusakanById($id);
+        $data = [
+            'name' => $tagihan->laporan_kerusakan->detailPeminjaman->peminjaman->user->name,
+            'email' => $tagihan->laporan_kerusakan->detailPeminjaman->peminjaman->user->email,
+            'nama_barang' => $tagihan->laporan_kerusakan->detailPeminjaman->barang->nama_barang,
+            'total_tagihan' => $tagihan->total_tagihan,
+            'deskripsi_kerusakan' => $tagihan->laporan_kerusakan->deskripsi_kerusakan,
+            'foto' => $tagihan->laporan_kerusakan->foto_kerusakan[0]->foto,
+            'nota_perbaikan' => $tagihan->nota_perbaikan,
+            'id_peminjaman' => $tagihan->laporan_kerusakan->detailPeminjaman->peminjaman->id_peminjaman
+        ];
+        // dd($data);
+        Mail::to($data['email'])->send(new TagihanPenggantian($data));
 
         return response()->json(['status' => 'Email sent successfully']);
     }
@@ -243,5 +256,110 @@ class LaporanKerusakanController extends Controller
     {
         $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
         return response()->json($laporan_kerusakan);
+    }
+
+    public function unduhLaporan()
+    {
+        return view('laporan.kerusakan.unduh_laporan');
+    }
+
+    public function downloadLaporanKerusakan(Request $request)
+    {
+        $jangka_waktu = $request->jangka_waktu;
+
+        if ($jangka_waktu == '1') {
+            $waktu = $request->tahun;
+            $laporan_kerusakan = $this->ModelLaporan->laporanKerusakanByTahun($waktu);
+        } elseif ($jangka_waktu == '2') {
+            $waktu = $request->bulan;
+            $laporan_kerusakan = $this->ModelLaporan->laporanKerusakanByBulan($waktu);
+        } else {
+            $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
+        }
+        
+        if (!$laporan_kerusakan) {
+            return redirect()->back()->with('error', 'Data laporan kerusakan tidak ditemukan.');
+        }
+        $this->laporanExcel($laporan_kerusakan);
+
+        return response()->download(storage_path('app/public/laporan_kerusakan.xlsx'));
+    }
+
+    public function laporanExcel($data)
+    {
+        // generate excel file
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'ID Laporan Kerusakan');
+        $sheet->setCellValue('B1', 'Nama Peminjam');
+        $sheet->setCellValue('C1', 'Nama Barang');
+        $sheet->setCellValue('D1', 'Kategori Barang');
+        $sheet->setCellValue('E1', 'Deskripsi Kerusakan');
+        $sheet->setCellValue('F1', 'Tanggal Laporan');
+        $sheet->setCellValue('G1', 'Status');
+        $sheet->setCellValue('H1', 'Biaya Perbaikan');
+        $sheet->setCellValue('I1', 'Status Pembayaran');
+
+        // Set header style
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF808080'],
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
+
+        // Set cell border style
+        $cellStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+
+        $column = 2;
+        foreach ($data as $laporan) {
+            $sheet->setCellValue('A' . $column, $laporan->id);
+            $sheet->setCellValue('B' . $column, $laporan->name);
+            $sheet->setCellValue('C' . $column, $laporan->nama_barang);
+            $sheet->setCellValue('D' . $column, $laporan->nama_kategori);
+            $sheet->setCellValue('E' . $column, $laporan->deskripsi_kerusakan);
+            $sheet->setCellValue('F' . $column, $laporan->created_at_laporan);
+            if ($laporan->kondisi == 'Baik') {
+                $sheet->setCellValue('G' . $column, 'Telah Diperbaiki');
+            } elseif ($laporan->kondisi == 'Dalam Perbaikan') {
+                $sheet->setCellValue('G' . $column, 'Dalam Perbaikan');
+            } else {
+                $sheet->setCellValue('G' . $column, 'Belum Diperbaiki');
+            }
+            $sheet->setCellValue('H' . $column, $laporan->total_tagihan);
+            if ($laporan->status_pembayaran == 'capture' || $laporan->status_pembayaran == 'settlement') {
+                $laporan->status_pembayaran = 'Lunas';
+            } else {
+                $laporan->status_pembayaran = 'Belum Lunas';
+            }
+            $sheet->setCellValue('I' . $column, $laporan->status_pembayaran);
+            $sheet->getStyle('A' . $column . ':I' . $column)->applyFromArray($cellStyle);
+            $column++;
+        }
+
+        // Auto size columns
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $path = storage_path('app/public/laporan_kerusakan.xlsx');
+        $writer->save($path);
     }
 }

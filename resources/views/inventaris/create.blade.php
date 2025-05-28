@@ -14,13 +14,6 @@
     </div><!-- End Page Title -->
 
     <x-section>
-        <div class="d-flex justify-content-end mb-3">
-            <a href="/inventaris">
-                <button type="button" class="btn btn-primary my-2 btn-icon-text">
-                    <i class="ri-arrow-go-back-fill"></i> Kembali
-                </button>
-            </a>
-        </div>
         <div class="m-4">
             <x-alert></x-alert>
         </div>
@@ -54,8 +47,17 @@
                         <select id="id_kategori" class="form-select" name="id_kategori">
                             <option selected>Pilih...</option>
                             @foreach ($kategori as $item)
-                                <option value="{{ $item->id_kategori }}">{{ $item->nama_kategori }}</option>
+                            <option value="{{ $item->id_kategori }}">{{ $item->nama_kategori }}</option>
                             @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="jenis_barang" class="form-label">Jenis Barang</label>
+                        <select id="jenis_barang" class="form-select" name="jenis_barang">
+                            <option selected>Pilih...</option>
+                            <option value="Fasilitas">Fasilitas</option>
+                            <option value="Barang Pinjam">Barang Pinjam</option>
                         </select>
                     </div>
 
@@ -65,16 +67,32 @@
                     </div>
 
                     <div class="col-md-12">
-                        <label for="deskripsi" class="form-label">Deskripsi</label>
+                        <label for="deskripsi" class="form-label">Deskripsi dan Spesifikasi</label>
                         <textarea class="form-control" id="deskripsi" name="deskripsi_barang" rows="3"></textarea>
                     </div>
-                        
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary" onclick="confirmModal()" >Tambah</button>
+
+
+                    <div class="d-flex justify-content-start gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary" onclick="confirmModal()">Tambah</button>
+                        <a href="/inventaris">
+                            <button type="button" class="btn btn-secondary btn-icon-text">
+                                <i class="ri-arrow-go-back-fill"></i> Kembali
+                            </button>
+                        </a>
                     </div>
                 </form><!-- End Multi Columns Form -->
             </div>
         </div>
         <x-confirm-modal></x-confirm-modal>
     </x-section>
+    @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.6.1/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '#deskripsi',
+            plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+            toolbar_mode: 'floating',
+        });
+    </script>
+    @endpush
 </x-layout>

@@ -4,53 +4,82 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Str;
 
 class TagihanKerusakan extends Model
 {
+    Use HasUuids;
     protected $table = 'tagihan_kerusakan'; // Mendeklarasikan nama tabel tagihan_kerusakan 
     protected $primaryKey = 'id'; // Mendeklarasikan primary key tabel tagihan_kerusakan
 
     protected $fillable = [
+        'id',
         'id_tagihan',
         'id_laporan_kerusakan',
         'status',
         'total_tagihan',
         'token',
         'payment_url',
+        'nota_perbaikan',
         'created_at',
         'updated_at'
     ]; // Mendeklarasikan kolom yang dapat diisi
-
-    public function laporan_kerusakan() // Relasi ke tabel laporan_kerusakan
+    
+    protected static function boot()
     {
-        return $this->belongsTo(LaporanKerusakan::class, 'id_laporan_kerusakan', 'id_laporan_kerusakan');
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
+    }
+
+    public function laporan_kerusakan()
+    {
+        return $this->belongsTo(LaporanKerusakan::class, 'id_laporan_kerusakan');
     }
 
     public function getLaporanPeminjaman($id) // Mendapatkan data laporan kerusakan berdasarkan id
     {
-        return DB::table('tagihan_kerusakan')
-            ->join('laporan_kerusakan', 'tagihan_kerusakan.id_laporan_kerusakan', '=', 'laporan_kerusakan.id')
-            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
-            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('users_detail', 'users.id', '=', 'users_detail.user_id')
-            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*', 'users_detail.*')
-            ->where('tagihan_kerusakan.id', $id)
+        return $this->where('id_laporan_kerusakan', $id)
+            ->with([
+                'laporan_kerusakan.detailPeminjaman.peminjaman.user',
+                'laporan_kerusakan.detailPeminjaman.barang.kategoriBarang',
+                'laporan_kerusakan.fotoKerusakan'
+            ])
+            ->get();
+    }
+
+    public function getTagihanKerusakanById($id) // Mendapatkan data tagihan kerusakan berdasarkan id
+    {
+        return $this->where('id', $id)
+            ->with([
+                'laporan_kerusakan.detailPeminjaman.peminjaman.user',
+                'laporan_kerusakan.detailPeminjaman.barang',
+                'laporan_kerusakan.detailPeminjaman.barang.kategoriBarang',
+                'laporan_kerusakan.foto_kerusakan'
+            ])
             ->first();
     }
 
-    public function getTagihanKerusakanByUserId($id) // Mendapatkan data tagihan kerusakan berdasarkan id user
+    public function getTagihanKerusakanByUserId($id_user) // Mendapatkan data tagihan kerusakan berdasarkan id user
     {
-        return DB::table('tagihan_kerusakan')
-            ->join('laporan_kerusakan', 'tagihan_kerusakan.id_laporan_kerusakan', '=', 'laporan_kerusakan.id')
-            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
-            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('users_detail', 'users.id', '=', 'users_detail.user_id')
-            ->select('tagihan_kerusakan.*', 'laporan_kerusakan.*', 'detail_peminjaman.*', 'peminjaman.*', 'barang.*', 'users.*', 'users_detail.*', 'tagihan_kerusakan.status as status_tagihan')
-            ->where('users.id', $id)
-            ->get();
+        return $this->whereHas('laporan_kerusakan', function ($query) use ($id_user) {
+            $query->whereHas('detailPeminjaman.peminjaman', function ($query) use ($id_user) {
+            $query->where('peminjaman.id_user', $id_user);
+            });
+        })->with(['laporan_kerusakan.detailPeminjaman.peminjaman', 'laporan_kerusakan.detailPeminjaman.barang'])->get();    
+    }
+
+    public function userHasTagihan($id_user)
+    {
+        return $this->whereHas('laporan_kerusakan', function ($query) use ($id_user) {
+            $query->whereHas('detailPeminjaman.peminjaman', function ($query) use ($id_user) {
+                $query->where('peminjaman.id_user', $id_user);
+            });
+        })->whereNotIn('status', ['capture', 'settlement'])->exists();
     }
 }

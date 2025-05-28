@@ -2,7 +2,7 @@
 
     <div class="d-flex align-items-center justify-content-between">
         <a href="index.html" class="logo d-flex align-items-center">
-            <i class="bi bi-box-seam me-1" style="font-size: 1.5rem;"></i>
+            <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="me-1" style="height: 40px;">
             <span class="d-none d-lg-block">Sistem Inventaris</span>
         </a>
         <i class="bi bi-list toggle-sidebar-btn"></i>

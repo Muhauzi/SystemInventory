@@ -31,7 +31,7 @@
                     <div class="card-header bg-primary text-light">
                         <b>Data Peminjaman</b>
                     </div>
-                    <div class="card-body mt-2">
+                    <div class="card-body mt-2 table-responsive">
                         <x-alert></x-alert>
                         <table class="table table-borderless">
                             <tr>
@@ -60,87 +60,108 @@
                                 <td>:</td>
                                 <td>
                                     @if ($peminjaman->status == 'Pending')
-                                    <span class="badge bg-warning">Menunggu Persetujuan Atasan</span>
+                                        <span class="badge bg-warning">Menunggu Persetujuan Atasan</span>
                                     @elseif ($peminjaman->status == 'Disetujui')
-                                    <span class="badge bg-success">Disetujui</span>
+                                        <span class="badge bg-success">Disetujui</span>
                                     @elseif ($peminjaman->status == 'Ditolak')
-                                    <span class="badge bg-danger">Ditolak</span>
+                                        <span class="badge bg-danger">Ditolak</span>
                                     @else
-                                    <span class="badge bg-info">
-                                        {{$peminjaman->status}}
-                                    </span>
+                                        <span class="badge bg-info">
+                                            {{ $peminjaman->status }}
+                                        </span>
                                     @endif
                                 </td>
                             </tr>
                             @if ($peminjaman->status == 'Dipinjam')
-                            <tr>
-                                <td>Tanggal Kembali</td>
-                                <td>:</td>
-                                <td>
-                                    {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>Tanggal Kembali</td>
+                                    <td>:</td>
+                                    <td>
+                                        {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
+                                    </td>
+                                </tr>
                             @endif
                             @if ($peminjaman->status == 'Dikembalikan')
-                            <tr>
-                                <td>Surat Bukti Pengembalian</td>
-                                <td>:</td>
-                                <td>
-                                    <a href="{{route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
-                                        <button class="btn btn-sm btn-info text-light">
-                                            <i class="ri-file-download-line"></i> Download Bukti Pengembalian
-                                        </button>
-                                    </a>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>Surat Bukti Pengembalian</td>
+                                    <td>:</td>
+                                    <td>
+                                        <a href="{{ route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman) }}"
+                                            target="_blank">
+                                            <button class="btn btn-sm btn-info text-light">
+                                                <i class="ri-file-download-line"></i> Download Bukti Pengembalian
+                                            </button>
+                                        </a>
+                                    </td>
+                                </tr>
                             @elseif ($peminjaman->status == 'Dipinjam')
-                            <tr>
-                                <td>Surat Bukti Peminjaman</td>
-                                <td>:</td>
-                                <td>
-                                    <a href="{{route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman)}}" target="_blank">
-                                        <button class="btn btn-sm btn-info text-light">
-                                            <i class="ri-file-download-line"></i> Download Bukti Peminjaman
-                                        </button>
-                                    </a>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>Surat Bukti Peminjaman</td>
+                                    <td>:</td>
+                                    <td>
+                                        <a href="{{ route('peminjaman.buktiPinjam', $peminjaman->id_peminjaman) }}"
+                                            target="_blank">
+                                            <button class="btn btn-sm btn-info text-light">
+                                                <i class="ri-file-download-line"></i> Download Bukti Peminjaman
+                                            </button>
+                                        </a>
+                                    </td>
+                                </tr>
                             @endif
                             <tr>
                                 <td>Barang</td>
                                 <td>:</td>
                                 <td>
-                                    <ul>
-                                        @foreach ($detailPeminjaman as $brg)
-                                        <li>
-                                            <div class="row">
-                                                <div class="col">
-                                                    {{ $brg->nama_barang }}
-                                                </div>
-                                                @if ($brg->kondisi == 'Rusak')
-                                                <div class="col">
-                                                    <a href="{{ route('laporan_kerusakan.add', $brg->id) }}">
-                                                        <button class="btn btn-sm btn-danger">
-                                                            <i class="ri-error-warning-line"></i> Laporkan Kerusakan
-                                                        </button>
-                                                    </a>
-                                                </div>
-                                                @endif
-                                            </div>
-                                        </li>
-                                        @endforeach
-                                    </ul>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nama Barang</th>
+                                                <th>Kondisi</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($detailPeminjaman as $brg)
+                                                <tr>
+                                                    <td>{{ $brg->id_barang . '|' . $brg->nama_barang }}</td>
+                                                    <td>{{ $brg->kondisi }}</td>
+                                                    <td>
+                                                        @if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang')
+                                                            @if ($modelDetail->cekLaporanKerusakan($brg->id) == false)
+                                                                <div class="col">
+                                                                    <a
+                                                                        href="{{ route('laporan_kerusakan.add', $brg->id) }}">
+                                                                        <button class="btn btn-sm btn-danger">
+                                                                            <i class="ri-error-warning-line"></i>
+                                                                            Buat Laporan
+                                                                        </button>
+                                                                    </a>
+                                                                </div>
+                                                            @else
+                                                                <div class="col">
+                                                                    <button class="btn btn-sm btn-danger" disabled>
+                                                                        <i class="ri-error-success-line"></i> Sudah
+                                                                        Dilaporkan
+                                                                    </button>
+                                                                </div>
+                                                            @endif
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </td>
                             </tr>
                         </table>
                         @if ($peminjaman->status == 'Dipinjam')
-                        <div class="d-flex justify-content-end ">
-                            <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}">
-                                <button class="btn btn-warning">
-                                    <i class="ri-pencil-line"></i> Edit
-                                </button>
-                            </a>
-                        </div>
+                            <div class="d-flex justify-content-end ">
+                                <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}">
+                                    <button class="btn btn-warning">
+                                        <i class="ri-pencil-line"></i> Edit
+                                    </button>
+                                </a>
+                            </div>
                         @endif
                     </div>
                 </div>

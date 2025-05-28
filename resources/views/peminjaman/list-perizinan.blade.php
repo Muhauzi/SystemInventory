@@ -22,11 +22,12 @@
             <div class="py-8">
                 <x-alert></x-alert>
 
-                <div class="my-2 flex sm:flex-row flex-col">
-                    <div class="block relative">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tabel Izin Peminjaman</h5>
                         <div class="table-responsive">
-                            <table class="table table-data text-center">
-                                <thead>
+                            <table class="table table-borderless datatable table-hover">
+                                <thead  class="table-primary">
                                     <tr>
                                         <th scope="col">Kode Peminjaman</th>
                                         <th scope="col">Nama Peminjam</th>

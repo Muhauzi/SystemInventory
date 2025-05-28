@@ -64,11 +64,17 @@
                                             echo $jumlahBarang;
                                             @endphp
                                         </p>
+                                        @if (auth()->user()->role == 'admin')
                                         <a href="{{ route('inventaris.list', $list->id_kategori) }}" class="btn btn-primary">Lihat Barang</a>
+                                        @elseif (auth()->user()->role == 'pimpinan')
+                                        <a href="{{ route('pimpinan.monitor.listBarang', $list->id_kategori) }}" class="btn btn-primary">Lihat Barang</a>
+                                        @endif
+                                        
                                     </div>
                                 </div>
                             </div>
                             @endforeach
+                            
                         </div>
                     </div>
                 </div>
