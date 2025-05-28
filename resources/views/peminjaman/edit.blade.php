@@ -1,15 +1,15 @@
 <x-layout>
     <x-slot name="title">
-        Edit Peminjaman
+        Form Pengembalian Barang
     </x-slot>
 
     <div class="pagetitle">
-        <h1>Form Edit Peminjaman</h1>
+        <h1>Form Pengembalian Barang</h1>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item">Peminjaman</li>
-                <li class="breadcrumb-item active">Form Edit Peminjaman</li>
+                <li class="breadcrumb-item active">Form Pengembalian</li>
             </ol>
         </nav>
     </div><!-- End Page Title -->
@@ -26,10 +26,10 @@
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <div class="card">
                     <div class="card-header bg-primary text-light">
-                        <b>Edit Peminjaman</b>
+                        <b>Form Pengembalian</b>
                     </div>
                     <div class="card-body mt-2">
                         @if ($errors->any())
@@ -41,84 +41,44 @@
                             </ul>
                         </div>
                         @endif
+
                         <form method="POST" id="formEdit" action="{{ route('peminjaman.update', $peminjaman->id_peminjaman) }}">
                             @csrf
                             @method('POST')
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td>Nama Peminjam</td>
-                                    <td>:</td>
-                                    <td>
-                                        {{ $users->name }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Tanggal Pinjam</td>
-                                    <td>:</td>
-                                    <td>
-                                        {{ $peminjaman->tgl_pinjam }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Tenggat Pengembalian</td>
-                                    <td>:</td>
-                                    <td>
-                                        {{ $peminjaman->tgl_tenggat }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Tanggal Kembali</td>
-                                    <td>:</td>
-                                    <td>
-                                        {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Barang</td>
-                                    <td>:</td>
-                                    <td>
-                                        @foreach ($barang as $brg)
-                                        <li>{{ $brg->nama_barang }}</li>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Status</td>
-                                    <td>:</td>
-                                    <td>
-                                        @if ($peminjaman->status == 'Dikembalikan')
-                                        <span class="badge bg-success">
-                                            {{ $peminjaman->status }}
-                                        </span>
-                                        @else
-                                        <select class="form-select" name="status">
-                                            @if ($peminjaman->status == 'Disetujui')
-                                            <option value="Dipinjam" {{ $peminjaman->status == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
-                                            @elseif ($peminjaman->status == 'Dipinjam') 
-                                            <option value="Dikembalikan" {{ $peminjaman->status == 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                                            @endif
-                                        </select>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Kondisi Barang</td>
-                                    <td>:</td>
-                                    <td>
-                                        @foreach ($barang as $brg)
-                                        <div class="mb-2">
-                                            <label>{{ $brg->nama_barang }}</label>
-                                            <select class="form-select" name="kondisi[{{ $brg->id_barang }}]">
-                                                <option value="Baik" {{ $brg->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
-                                                <option value="Rusak" {{ $brg->kondisi == 'Rusak' ? 'selected' : '' }}>Rusak</option>
-                                                <option value="Hilang" {{ $brg->kondisi == 'Hilang' ? 'selected' : '' }}>Hilang</option>
-                                            </select>
-                                        </div>
-                                        @endforeach
-                                    </td>
-                                </tr>
-                                </tr>
-                            </table>
+                            <div class="mb-3">
+                                <strong>Nama Peminjam:</strong> {{ $users->name }}<br>
+                                <strong>Tanggal Pinjam:</strong> {{ $peminjaman->tgl_pinjam }}<br>
+                                <strong>Tenggat Pengembalian:</strong> {{ $peminjaman->tgl_tenggat }}<br>
+                                <strong>Tanggal Kembali:</strong> {{ $peminjaman->tgl_kembali ?? 'Belum Dikembalikan' }}
+                            </div>
+
+                            <hr>
+
+                            <h5>Daftar Barang</h5>
+                            @foreach ($barang as $index => $brg)
+                            <div class="card mb-3 p-3 shadow-sm">
+                                <div class="mb-2">
+                                    <strong>ID Barang:</strong> {{ $brg->id_barang }}<br>
+                                    <strong>Nama Barang:</strong> {{ $brg->nama_barang }}<br>
+                                    <strong>Deskripsi dan Spesifikasi:</strong><br>{!! nl2br(e($brg->deskripsi_barang)) !!}
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input confirm-barang" type="checkbox" id="checkbox_{{ $brg->id_barang }}" data-id="{{ $brg->id_barang }}">
+                                    <label class="form-check-label" for="checkbox_{{ $brg->id_barang }}">
+                                        Barang sesuai deskripsi dan spesifikasi
+                                    </label>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="kondisi_{{ $brg->id_barang }}"><strong>Kondisi Barang:</strong></label>
+                                    <select class="form-select kondisi-select" name="kondisi[{{ $brg->id_barang }}]" id="kondisi_{{ $brg->id_barang }}">
+                                        <option value="Baik">Baik</option>
+                                        <option value="Rusak">Rusak</option>
+                                        <option value="Hilang">Hilang</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @endforeach
+
                             <button type="submit" class="btn btn-primary" onclick="return confirmSave()">Simpan</button>
                         </form>
                     </div>
@@ -128,10 +88,32 @@
     </div>
 
     <script>
+        // Disable "Baik" if checkbox is not checked
+        document.querySelectorAll('.confirm-barang').forEach((checkbox) => {
+            checkbox.addEventListener('change', function () {
+                const id = this.dataset.id;
+                const select = document.getElementById('kondisi_' + id);
+                const baikOption = select.querySelector('option[value="Baik"]');
+
+                if (this.checked) {
+                    baikOption.disabled = false;
+                } else {
+                    // Set value to Rusak or Hilang if "Baik" was selected
+                    if (select.value === 'Baik') {
+                        select.value = 'Rusak';
+                    }
+                    baikOption.disabled = true;
+                }
+            });
+
+            // Inisialisasi saat halaman dimuat
+            checkbox.dispatchEvent(new Event('change'));
+        });
+
         function confirmSave() {
             Swal.fire({
                 title: 'Apakah anda yakin?',
-                text: "Anda tidak akan dapat mengembalikan ini!",
+                text: "Data pengembalian akan disimpan.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',

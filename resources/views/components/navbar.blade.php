@@ -11,7 +11,7 @@
             @endif
             @if(auth()->user()->role == 'admin')
         <li class="nav-item">
-            <a class="nav-link collapsed" href={{route('kelola_user.index')}}>
+            <a class="nav-link collapsed {{ Route::is('kelola_user.index') ? 'active' : '' }}" href="{{ route('kelola_user.index') }}">
                 <i class="bi bi-people-fill"></i><span>User</span>
             </a>
         </li><!-- End Components Nav -->

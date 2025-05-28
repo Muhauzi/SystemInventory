@@ -151,14 +151,52 @@
                             </x-form>
                         </div>
                         @elseif($data['status_pengajuan'] == 'Disetujui' && $data['is_processed'] == 0)
+                        <!-- Button trigger modal -->
                         <div class="d-flex justify-content-end mt-4">
-                            <x-form :action="route('pengajuan.pengajuanDiambil', ['id' => $data['id_pengajuan']])">
-                                <x-slot name="customButton">
-                                    <button type="submit" class="btn btn-success mx-2">
-                                        Proses Peminjaman
-                                    </button>
-                                </x-slot>
-                            </x-form>
+                            <button type="button" class="btn btn-success mx-2" data-bs-toggle="modal" data-bs-target="#prosesPeminjamanModal">
+                                Proses Peminjaman
+                            </button>
+                        </div>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="prosesPeminjamanModal" tabindex="-1" aria-labelledby="prosesPeminjamanModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{{ route('pengajuan.pengajuanDiambil', ['id' => $data['id_pengajuan']]) }}">
+                                        @csrf
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="prosesPeminjamanModalLabel">Data Pengambil Barang</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="nama_pengambil" class="form-label">Nama Pengambil</label>
+                                                <input type="text" class="form-control" id="nama_pengambil" name="nama_pengambil" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="jabatan" class="form-label">Jabatan</label>
+                                                <input type="text" class="form-control" id="jabatan" name="jabatan" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="no_hp" class="form-label">Nomor HP</label>
+                                                <input type="text" class="form-control" id="no_hp" name="no_hp" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="email" name="email" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="alamat" class="form-label">Alamat Tinggal</label>
+                                                <textarea class="form-control" id="alamat" name="alamat" rows="2" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-success">Proses Peminjaman</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                         @endif
 

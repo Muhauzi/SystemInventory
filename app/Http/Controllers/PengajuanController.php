@@ -10,13 +10,14 @@ use App\Models\M_detail_pengajuan;
 use App\Models\M_pengajuan;
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
+use App\Models\m_penanggung_jawab; // Pastikan model ini sudah ada jika diperlukan
 use Illuminate\Support\Facades\DB;
 
 
 
 class PengajuanController extends Controller
 {
-    protected $m_pengajuan, $m_detail_pengajuan, $m_barang, $m_peminjaman, $m_detail_peminjaman;
+    protected $m_pengajuan, $m_detail_pengajuan, $m_barang, $m_peminjaman, $m_detail_peminjaman, $m_penanggung_jawab;
     protected $authUser;
     public function __construct()
     {
@@ -26,6 +27,7 @@ class PengajuanController extends Controller
         $this->authUser = Auth::user();
         $this->m_peminjaman = new Peminjaman();
         $this->m_detail_peminjaman = new DetailPeminjaman();
+        $this->m_penanggung_jawab = new m_penanggung_jawab(); // Inisialisasi model penanggung jawab jika diperlukan
     }
 
     public function index()
@@ -122,7 +124,7 @@ class PengajuanController extends Controller
         }
     }
 
-    public function pengajuanDiambil($id)
+    public function pengajuanDiambil(Request $request, $id)
     {
         $pengajuan = $this->m_pengajuan->getPengajuanById($id);
         if (!$pengajuan) {
@@ -160,6 +162,19 @@ class PengajuanController extends Controller
     
             // Simpan id peminjaman
             $id_peminjaman = $peminjaman->id_peminjaman;
+
+            $penanggungJawab = $this->m_penanggung_jawab->create([
+                'id_peminjaman' => $id_peminjaman,
+                'nama' => $request->nama_pengambil,
+                'email' => $request->email,
+                'no_hp' => $request->no_hp,
+                'jabatan' => $request->jabatan,
+                'alamat' => $request->alamat,
+            ]);
+
+            if (!$penanggungJawab) {
+                throw new \Exception('Gagal menyimpan penanggung jawab peminjaman.');
+            }
     
             // Simpan detail peminjaman dan update status barang
             foreach ($barangList as $barang) {
