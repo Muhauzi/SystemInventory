@@ -17,17 +17,17 @@
 
     <div class="d-flex justify-content-end mb-3">
         @if (auth()->user()->role == 'admin')
-            <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
-                <button type="button" class="btn btn-secondary my-2 btn-icon-text">
-                    <i class="ri-arrow-go-back-fill"></i> Kembali
-                </button>
-            </a>      
+        <a href="{{ route('inventaris.list' ,  $inventaris->id_kategori )}}">
+            <button type="button" class="btn btn-secondary my-2 btn-icon-text">
+                <i class="ri-arrow-go-back-fill"></i> Kembali
+            </button>
+        </a>
         @else
-            <a href="{{ route('user.barangTersedia') }}">
-                <button type="button" class="btn btn-secondary my-2 btn-icon-text">
-                    <i class="ri-arrow-go-back-fill"></i> Kembali
-                </button>
-            </a>      
+        <a href="{{ route('user.barangTersedia') }}">
+            <button type="button" class="btn btn-secondary my-2 btn-icon-text">
+                <i class="ri-arrow-go-back-fill"></i> Kembali
+            </button>
+        </a>
         @endif
     </div>
     <div class="card">
@@ -50,7 +50,7 @@
                             <th>Nama Barang</th>
                             <td>{{ $inventaris->nama_barang }}</td>
                         </tr>
-                       <tr>
+                        <tr>
                             <th>Deskripsi & Spesifikasi Barang</th>
                             <td>{!! nl2br(e($inventaris->deskripsi_barang)) !!}</td>
                         </tr>
@@ -74,13 +74,13 @@
                                 @if ($inventaris->status_barang == 'Dalam Perbaikan')
                                 <span class="badge bg-danger">Rusak</span>
                                 @else
-                                    @if ($inventaris->kondisi == 'Baik')
-                                    <span class="badge bg-success">{{ $inventaris->kondisi }}</span>
-                                    @elseif ($inventaris->kondisi == 'Rusak' || $inventaris->kondisi == 'Hilang')
-                                    <span class="badge bg-danger">{{ $inventaris->kondisi }}</span>
-                                    @else
-                                    <span class="badge bg-warning">{{ $inventaris->kondisi }}</span>
-                                    @endif
+                                @if ($inventaris->kondisi == 'Baik')
+                                <span class="badge bg-success">{{ $inventaris->kondisi }}</span>
+                                @elseif ($inventaris->kondisi == 'Rusak' || $inventaris->kondisi == 'Hilang')
+                                <span class="badge bg-danger">{{ $inventaris->kondisi }}</span>
+                                @else
+                                <span class="badge bg-warning">{{ $inventaris->kondisi }}</span>
+                                @endif
                                 @endif
                             </td>
                         </tr>
@@ -90,13 +90,13 @@
                             <td>{{ $inventaris->tgl_pembelian }}</td>
                         </tr>
                         @endif
-                        
-                        
+
+
                         <tr>
                             <th>Harga Barang</th>
                             <td>Rp. {{ number_format($inventaris->harga_barang, 0, ',', '.') }}</td>
                         </tr>
-                        
+
                         <tr>
                             <th>Kategori</th>
                             <td>
@@ -113,6 +113,80 @@
                         </tr>
 
                     </table>
+
+                    @if($data_peminjam != null && $data_peminjam->count() > 0 && auth()->user()->role == 'admin' && $inventaris->status_barang == 'Dipinjam')
+                        <!-- Data Peminjam Table -->
+                        <h3>Data Peminjam</h3>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Nama Peminjam</th>
+                                <td>{{ $data_peminjam->first()->user->name ?? 'Tidak ada peminjam' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status Peminjam</th>
+                                <td>
+                                    @php $role = $data_peminjam->first()->user->role ?? null; @endphp
+                                    @if ($role == 'admin')
+                                        <span class="badge bg-primary">Admin</span>
+                                    @elseif ($role == 'user')
+                                        <span class="badge bg-secondary">Karyawan</span>
+                                    @elseif ($role == 'partnership')
+                                        <span class="badge bg-secondary">Partnership</span>
+                                    @else
+                                        <span class="badge bg-info">{{ $role }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Pinjam</th>
+                                <td>{{ $data_peminjam->first()->tgl_pinjam ?? 'Tidak ada peminjaman' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Kembali</th>
+                                <td>{{ $data_peminjam->first()->tgl_kembali ?? 'Belum dikembalikan' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status Peminjaman</th>
+                                <td>
+                                    @php $status = $data_peminjam->first()->status ?? null; @endphp
+                                    @if ($status == 'Dipinjam')
+                                        <span class="badge bg-info">{{ $data_peminjam->first()->status }}</span>
+                                    @elseif ($status == 'Selesai')
+                                        <span class="badge bg-success">{{ $data_peminjam->first()->status }}</span>
+                                    @else
+                                        <span class="badge bg-warning">{{ $data_peminjam->first()->status }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+
+                        @if($role == 'partnership' && $data_peminjam->first()->penanggung_jawab)
+                            <h3>Data Penanggung Jawab Peminjaman Partnership</h3>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Nama Penanggung Jawab</th>
+                                    <td>{{ $data_peminjam->first()->penanggung_jawab->nama }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Jabatan</th>
+                                    <td>{{ $data_peminjam->first()->penanggung_jawab->jabatan }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nomor Telepon</th>
+                                    <td>{{ $data_peminjam->first()->penanggung_jawab->no_hp }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ $data_peminjam->first()->penanggung_jawab->email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Alamat</th>
+                                    <td>{{ $data_peminjam->first()->penanggungJawab->alamat }}</td>
+                                </tr>
+                            </table>
+                        @endif
+                    @endif
+
 
                     @if (auth()->user()->role == 'admin')
                     <h3>QR Code</h3>

@@ -8,6 +8,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\KategoriBarang;
 use Illuminate\Support\Facades\Storage;
 use App\Models\DetailPeminjaman;
+use App\Models\Peminjaman;
 
 class InventarisController extends Controller
 {
@@ -59,6 +60,11 @@ class InventarisController extends Controller
     {
         $inventaris = Inventaris::find($id); // Mengambil data inventaris berdasarkan id
         $kategori = KategoriBarang::all(); // Mengambil data kategori barang
+        $m_peminjaman = new Peminjaman();
+        $data_peminjam = $m_peminjaman->getDataPeminjamanBarang($inventaris->id_barang); // Mengambil data peminjam barang
+        // dd($data_peminjam->penanggung_jawab->nama); // Debugging untuk melihat data peminjam
+
+
 
         if (!$inventaris) { // Jika data inventaris tidak ditemukan
             return redirect()->back()
@@ -70,7 +76,7 @@ class InventarisController extends Controller
             $this->generateAndSaveQRCode($inventaris); // Generate dan simpan qrcode
         }
 
-        return view('inventaris.show', compact('inventaris', 'kategori')); // Menampilkan halaman detail inventaris
+        return view('inventaris.show', compact('inventaris', 'kategori', 'data_peminjam')); // Menampilkan halaman detail inventaris
     }
 
     private function generateAndSaveQRCode($inventaris)

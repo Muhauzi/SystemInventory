@@ -42,6 +42,11 @@ class Peminjaman extends Model
         return $this->hasOne(m_tagihan::class, 'id_peminjaman', 'id_peminjaman');
     }
 
+    public function penanggungJawab()
+    {
+        return $this->hasOne(m_penanggung_jawab::class, 'id_peminjaman', 'id_peminjaman');
+    }
+
     // Fungsi
     
     public function getPeminjamanById($id)
@@ -50,6 +55,35 @@ class Peminjaman extends Model
             ->where('id_peminjaman', $id)
             ->first();
     }
+
+    public function getDataPeminjamanBarang($id_barang, $user = null)
+    {
+        $query = $this->with(['detailPeminjaman.barang', 'user', 'user.detail']);
+
+        // Cek jika user yang melakukan peminjaman memiliki role partnership
+        $query = $query->when($user && isset($user->role) && $user->role === 'partnership', function ($q) {
+            return $q->with('penanggungJawab');
+        });
+
+        return $query->whereHas('detailPeminjaman', function ($q) use ($id_barang) {
+                $q->where('id_barang', $id_barang);
+            })
+            ->where('status', 'Dipinjam')
+            ->get()
+            ->map(function ($peminjaman) use ($user) {
+                $peminjaman->user_name = $peminjaman->user->name ?? null;
+                $peminjaman->user_detail = $peminjaman->user->detail ?? null;
+                $peminjaman->barang_dipinjam = $peminjaman->detailPeminjaman->map(function ($detail) {
+                    return $detail->barang;
+                });
+                // Jika user yang melakukan peminjaman memiliki role partnership, tambahkan data penanggungJawab
+                if ($peminjaman->user && isset($peminjaman->user->role) && $peminjaman->user->role === 'partnership') {
+                    $peminjaman->penanggung_jawab = $peminjaman->penanggungJawab;
+                }
+                return $peminjaman;
+            });
+    }
+
 
     public function dataPeminjaman()
     {

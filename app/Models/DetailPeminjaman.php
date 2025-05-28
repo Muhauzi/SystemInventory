@@ -41,6 +41,8 @@ class DetailPeminjaman extends Model
         return $this->belongsTo(Inventaris::class, 'id_barang', 'id_barang');
     }
 
+    
+
     public function getDetail($id)
     {
         $data = DB::table('detail_peminjaman')

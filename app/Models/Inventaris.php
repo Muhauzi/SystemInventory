@@ -42,9 +42,16 @@ class Inventaris extends Model
     {
         return $this->belongsTo(KategoriBarang::class, 'id_kategori', 'id_kategori');
     }
-    public function peminjaman()
+    public function detailPeminjaman()
     {
-        return $this->hasMany(Peminjaman::class, 'id_barang', 'id_barang');
+        return $this->hasMany(DetailPeminjaman::class, 'id_barang', 'id_barang');
+    }
+
+    public function getPeminjamBarang($id_barang)
+    {
+        return $this->where('id_barang', $id_barang)
+            ->with(['detailPeminjaman.peminjaman.user', 'detailPeminjaman.peminjaman.penanggungJawab'])
+            ->get();
     }
 
     public function barangTersedia()
