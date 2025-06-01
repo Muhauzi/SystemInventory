@@ -9,15 +9,17 @@ use App\Models\KategoriBarang;
 use Illuminate\Support\Facades\Storage;
 use App\Models\DetailPeminjaman;
 use App\Models\Peminjaman;
+use App\Models\M_detail_pengajuan;
 
 class InventarisController extends Controller
 {
-    protected $inventaris, $m_kategori;
+    protected $inventaris, $m_kategori, $m_detail_pengajuan;
 
     function __construct()
     {
         $this->inventaris = new Inventaris();
         $this->m_kategori = new KategoriBarang();
+        $this->m_detail_pengajuan = new M_detail_pengajuan();
     }
 
     public function index()
@@ -37,6 +39,8 @@ class InventarisController extends Controller
 
         $modelDetailPeminjaman = new DetailPeminjaman();
         $isBorrowed = $modelDetailPeminjaman->isBorrowed();
+        $isBooked = $this->m_detail_pengajuan->bookedBarang(); // Mengambil data apakah barang sedang dipinjam atau dipesan
+        // dd($isBooked);
 
 
         return view('inventaris.list', compact('inventaris', 'kategori', 'isBorrowed')); // Menampilkan halaman list inventaris

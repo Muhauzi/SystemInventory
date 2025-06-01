@@ -59,7 +59,8 @@ Route::prefix('peminjaman')->name('peminjaman.')->middleware(['auth', 'verified'
     Route::post('/update/{id}', [PeminjamanController::class, 'update'])->name('update');
     Route::delete('/delete/{id}', [PeminjamanController::class, 'destroy'])->name('delete');
     Route::get('/buktiPinjam/{id}', [PeminjamanController::class, 'buktiPinjam'])->name('buktiPinjam');
-    Route::get('/buktiKembali/{id}', [PeminjamanController::class, 'buktiKembali'])->name('buktiKembali');
+    Route::get('/buktiKembali/{id}', [PeminjamanController::class, 'buktiKembali'])->name('buktiKembali');    
+    Route::post('/scanQR', [PeminjamanController::class, 'scanQR'])->name('scanQR');
     Route::post('/scanReturn', [PeminjamanController::class, 'return'])->name('scanReturn');
     Route::get('/laporan', [PeminjamanController::class, 'unduhLaporan'])->name('laporan');
     Route::get('/request_unduh', [PeminjamanController::class, 'unduhLaporan'])->name('request_unduh');
@@ -127,6 +128,7 @@ Route::prefix('pimpinan')->name('pimpinan.')->middleware(['auth', 'verified', 'p
     Route::get('/monitor_barang', [InventarisController::class, 'index'])->name('monitor.barang');
     Route::get('/monitor_barang/list/{id}', [InventarisController::class, 'barangByKategori'])->name('monitor.listBarang');
     Route::get('/monitor_barang/show/{id}', [InventarisController::class, 'show'])->name('monitor.showBarang');
+    Route::post('ScanQR', [InventarisController::class, 'scanQR'])->name('scanQR');
     Route::get('/list_pegawai', [AtasanController::class, 'listPegawai'])->name('list_pegawai');
     Route::get('/detail_pegawai/{id}', [AtasanController::class, 'detailPegawai'])->name('detail_pegawai');
     Route::get('/izin_peminjaman', [AtasanController::class, 'izinPeminjamanInventaris'])->name('izin_peminjaman');

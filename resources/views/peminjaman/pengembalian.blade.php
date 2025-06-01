@@ -176,6 +176,68 @@
             </div>
         </div>
     </section>
+    <!-- Modal Gabungan: Input Manual & Scan -->
+    <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- Header Modal -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="returnModalLabel">Pengembalian Barang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" id="returnTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">Input Manual</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="scan-tab" data-bs-toggle="tab" data-bs-target="#scan" type="button" role="tab">Scan QR</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="returnTabContent">
+
+                        <!-- Tab: Input Manual -->
+                        <div class="tab-pane fade show active" id="manual" role="tabpanel">
+                            <form action="{{ route('peminjaman.manualReturn') }}" method="post">
+                                @csrf
+                                @method('POST')
+                                <div class="mb-3">
+                                    <label for="id_peminjaman" class="form-label">ID Peminjaman</label>
+                                    <input type="text" class="form-control" id="id_peminjaman" name="id_peminjaman" placeholder="Masukkan ID Peminjaman">
+                                </div>
+                                <button type="submit" class="btn btn-success">Submit</button>
+                            </form>
+                        </div>
+
+                        <!-- Tab: Scan QR -->
+                        <div class="tab-pane fade" id="scan" role="tabpanel">
+                            <div class="reader" id="scannerBarang"></div>
+                            <form action="{{ route('peminjaman.scanReturn') }}" id="formScanFind" method="post">
+                                @csrf
+                                @method('POST')
+                                <input type="hidden" name="id_peminjaman" id="id_barang">
+                                @if (session('id_barang'))
+                                <div class="alert alert-success mt-3">
+                                    Peminjaman ditemukan
+                                </div>
+                                @endif
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Modal -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
         <!-- Modal Scan Peminjaman -->
     <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true">
@@ -187,7 +249,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="reader" id="scannerPeminjaman"></div>
-                    <form action="{{ route('peminjaman.scanQR') }}" id="formScanFind" method="post">
+                    <form action="{{ route('peminjaman.scanQR') }}" id="formScanFind2" method="post">
                         @csrf
                         @method('POST')
                         <input type="hidden" name="id_peminjaman" id="id_peminjaman2">
@@ -215,7 +277,7 @@
     <script>
         // Initialize scanner for Pengembalian (scannerBarang)
         let html5QRCodeScanner = new Html5QrcodeScanner(
-            "scannerPeminjaman", {
+            "scannerBarang", {
             fps: 10,
             qrbox: {
                 width: 500,
@@ -226,7 +288,7 @@
 
         function onScanSuccess(decodedText, decodedResult) {
             // set the value of the hidden input field with the scanned text
-            document.getElementById('id_peminjaman2').value = decodedText;
+            document.getElementById('id_barang').value = decodedText;
 
             // submit the form after setting the value
             document.getElementById('formScanFind').submit();

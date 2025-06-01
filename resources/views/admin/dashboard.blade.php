@@ -18,69 +18,101 @@
             <!-- Left side columns -->
             <div class="col-lg-8">
                 <div class="row">
-
+                    @php
+                        $isPimpinan = auth()->user()->role === 'pimpinan';
+                    @endphp
+                    
                     <div class="row">
                         <!-- Total Barang Inventaris -->
                         <div class="col-xxl-3 col-md-6 mb-4">
                             <div class="card info-card sales-card h-100">
-                                <a href="/inventaris">
-                                    <div class="card-body">
+                                <div class="card-body d-flex flex-column justify-content-between h-100">
+                                    @if ($isPimpinan)
+                                        <h5 class="card-title">Total Barang Inventaris</h5>
+                                    @else
+                                        <a href="/inventaris" class="text-decoration-none text-dark">
                                             <h5 class="card-title">Total Barang Inventaris</h5>
-                                        
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <i class="bi bi-box-seam"></i>
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6>{{ count($dataInventaris) }}</h6>
-                                            </div>
+                                        </a>
+                                    @endif
+                                    <div class="d-flex align-items-center mt-auto">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-box-seam"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>
+                                                @if ($isPimpinan)
+                                                    <a href="{{ route('pimpinan.monitor.barang') }}">{{ count($dataInventaris) }}</a>
+                                                @else
+                                                    {{ count($dataInventaris) }}
+                                                @endif
+                                            </h6>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             </div>
                         </div>
                     
                         <!-- Peminjaman -->
                         <div class="col-xxl-3 col-md-6 mb-4">
-                            
-                                <div class="card info-card revenue-card h-100">
-                                    <div class="filter">
-                                        <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                            <li class="dropdown-header text-start">
-                                                <h6>Filter</h6>
-                                            </li>
-                                            <li><a class="dropdown-item" id="filter-peminjaman-today" href="#">Today</a></li>
-                                            <li><a class="dropdown-item" id="filter-peminjaman-month" href="#">This Month</a></li>
-                                            <li><a class="dropdown-item" id="filter-peminjaman-year" href="#">This Year</a></li>
-                                        </ul>
-                                    </div>
-                        
-                                    <!-- Default View (e.g., Today) -->
-                                    <a href="/peminjaman">
-                                    <div class="card-body" id="peminjaman-day">
-                                        <h5 class="card-title">Peminjaman <span>| This Day</span></h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <i class="bi bi-arrow-down-circle"></i>
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><span id="peminjaman-day-count">0</span></h6>
-                                            </div>
+                            <div class="card info-card revenue-card h-100">
+                                <div class="filter">
+                                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                        <li class="dropdown-header text-start"><h6>Filter</h6></li>
+                                        <li><a class="dropdown-item" id="filter-peminjaman-today" href="#">Today</a></li>
+                                        <li><a class="dropdown-item" id="filter-peminjaman-month" href="#">This Month</a></li>
+                                        <li><a class="dropdown-item" id="filter-peminjaman-year" href="#">This Year</a></li>
+                                    </ul>
+                                </div>
+                                <div class="card-body d-flex flex-column justify-content-between h-100">
+                                    <h5 class="card-title">
+                                        @unless($isPimpinan)
+                                            <a href="/peminjaman" class="text-decoration-none text-dark">Peminjaman</a>
+                                        @else
+                                            Peminjaman
+                                        @endunless
+                                        <span id="peminjaman-filter-label">| Today</span>
+                                    </h5>
+                                    <div class="d-flex align-items-center mt-auto">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-arrow-down-circle"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6 id="peminjaman-day" style="display:block;">
+                                                <span id="peminjaman-day-count">0</span>
+                                            </h6>
+                                            <h6 id="peminjaman-month" style="display:none;">
+                                                <span id="peminjaman-month-count">0</span>
+                                            </h6>
+                                            <h6 id="peminjaman-year" style="display:none;">
+                                                <span id="peminjaman-year-count">0</span>
+                                            </h6>
                                         </div>
                                     </div>
-                                    </a>
                                 </div>
-                            
+                            </div>
                         </div>
-
+                        <script>
+                            document.addEventListener("DOMContentLoaded", () => {
+                                // Update filter label on click
+                                document.getElementById('filter-peminjaman-today').addEventListener('click', function() {
+                                    document.getElementById('peminjaman-filter-label').innerText = '| Today';
+                                });
+                                document.getElementById('filter-peminjaman-month').addEventListener('click', function() {
+                                    document.getElementById('peminjaman-filter-label').innerText = '| This Month';
+                                });
+                                document.getElementById('filter-peminjaman-year').addEventListener('click', function() {
+                                    document.getElementById('peminjaman-filter-label').innerText = '| This Year';
+                                });
+                            });
+                        </script>
+                    
                         <!-- Pengajuan Pending -->
                         <div class="col-xxl-3 col-md-6 mb-4">
-                            <a href="/pengajuan">
                             <div class="card info-card customers-card h-100">
-                                <div class="card-body">
+                                <div class="card-body d-flex flex-column justify-content-between h-100">
                                     <h5 class="card-title">Pengajuan Pending</h5>
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center mt-auto">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                             <i class="bi bi-hourglass-split"></i>
                                         </div>
@@ -89,17 +121,18 @@
                                         </div>
                                     </div>
                                 </div>
+                                @unless($isPimpinan)
+                                    <a href="/pengajuan" class="stretched-link"></a>
+                                @endunless
                             </div>
-                            </a>
                         </div>
                     
                         <!-- Users -->
                         <div class="col-xxl-3 col-md-6 mb-4">
-                            <a href="/kelola_user">
                             <div class="card info-card customers-card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title mb-4">Users</h5>
-                                    <div class="d-flex align-items-center">
+                                <div class="card-body d-flex flex-column justify-content-between h-100">
+                                    <h5 class="card-title">Users</h5>
+                                    <div class="d-flex align-items-center mt-auto">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                             <i class="bi bi-people"></i>
                                         </div>
@@ -108,10 +141,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                @unless($isPimpinan)
+                                    <a href="/kelola_user" class="stretched-link"></a>
+                                @endunless
                             </div>
-                            </a>
                         </div>
                     </div>
+
 
 
                     <!-- Recent Sales -->

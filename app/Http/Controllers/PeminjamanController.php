@@ -12,6 +12,7 @@ use App\Models\DetailPeminjaman as ModelDetailPeminjaman;
 use App\Models\BatasPeminjaman;
 use App\Models\LaporanKerusakan;
 use App\Models\m_tagihan;
+use App\Models\m_penanggung_jawab;
 use App\Models\TagihanKerusakan;
 use Carbon\Carbon;
 
@@ -22,6 +23,7 @@ class PeminjamanController extends Controller
     protected $m_detailPeminjaman; // Menambahkan property detail peminjaman
     protected $m_tagihan; // Menambahkan property tagihan
     protected $m_tagihan_kerusakan; // Menambahkan property tagihan kerusakan
+    protected $m_penanggung_jawab; // Menambahkan property penanggung jawab
 
     public function __construct() // Constructor
     {
@@ -29,6 +31,7 @@ class PeminjamanController extends Controller
         $this->m_tagihan_kerusakan = new TagihanKerusakan(); // Mengambil data tagihan kerusakan
         $this->m_peminjaman = new ModelPeminjaman(); // Mengambil data peminjaman
         $this->m_detailPeminjaman = new ModelDetailPeminjaman(); // Mengambil data detail peminjaman
+        $this->m_penanggung_jawab = new m_penanggung_jawab(); // Mengambil data penanggung jawab
     }
 
     public function index() // Menampilkan data peminjaman
@@ -57,7 +60,7 @@ class PeminjamanController extends Controller
 
         $users = User::all();   // Mengambil semua data user
 
-        return view('peminjaman.index', compact('peminjaman', 'title', 'users')); // Menampilkan data pengembalian
+        return view('peminjaman.pengembalian', compact('peminjaman', 'title', 'users')); // Menampilkan data pengembalian
     }
 
     public function show($id) // Menampilkan detail peminjaman
@@ -110,14 +113,14 @@ class PeminjamanController extends Controller
             'tgl_tenggat.required' => 'Tanggal tenggat harus diisi.',
             'keterangan.required' => 'Keterangan harus diisi.',
         ]); // Validasi inputan
-        
+
         $id_user = $request->id_user; // Menambahkan data id_user dari form
         $user = User::find($id_user); // Mengambil data user berdasarkan id_user
 
 
         // Memeriksa apakah user masih memiliki peminjaman yang melewati tenggat
         $overdue = $this->m_peminjaman->getTelatPengembalian($request->id_user);
-        if($user->role == 'partnership') {
+        if ($user->role == 'partnership') {
             if ($overdue) { // Jika user memiliki peminjaman yang melewati tenggat
                 return redirect()->back()
                     ->with('error', 'User masih memiliki peminjaman yang melewati tenggat. Silakan kembalikan barang terlebih dahulu.');
@@ -180,14 +183,22 @@ class PeminjamanController extends Controller
         $id = $request->id_barang; // Mengambil data id dari form
         if (!$id) { // Jika id tidak ada
             return redirect()->back()
-                ->with('error', 'ID peminjaman ' . $id . ' tidak ditemukan. ' );
+                ->with('error', 'ID peminjaman ' . $id . ' tidak ditemukan. ');
         }
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
         $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();    // Mengambil data detail peminjaman berdasarkan id peminjaman
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
         $users = User::where('id', $peminjaman->id_user)->first();  // Mengambil data user berdasarkan id user
 
-        return view('peminjaman.edit', compact('peminjaman', 'barang', 'users'));  
+        return view('peminjaman.edit', compact('peminjaman', 'barang', 'users'));
+    }
+
+    public function scanQR(Request $request) // Scan QR Code untuk mencari data peminjaman
+    {
+        $id = $request->id_peminjaman; // Mengambil data id dari form
+        // dd($id);
+
+        return redirect()->route('peminjaman.show', $id); // Redirect ke route peminjaman.show dengan id peminjaman
     }
 
 
@@ -205,11 +216,20 @@ class PeminjamanController extends Controller
     public function return(Request $request) // Menampilkan form edit peminjaman
     {
         $id = $request->id_peminjaman; // Mengambil data id dari form
+        
         if (!$id) { // Jika id tidak ada
             return redirect()->back()
-                ->with('error', 'ID peminjaman ' . $id . ' tidak ditemukan. ' );
+                ->with('error', 'ID peminjaman ' . $id . ' tidak ditemukan. ');
         }
         $peminjaman = ModelPeminjaman::find($id); // Mengambil data peminjaman berdasarkan id
+        if (!$peminjaman) { // Jika data peminjaman tidak ditemukan
+            return redirect()->back()
+                ->with('error', 'Data peminjaman tidak ditemukan.');
+        } elseif ($peminjaman->status == 'Dikembalikan'){
+            return redirect()->back()
+                ->with('error', 'Data peminjaman sudah dikembalikan.');
+        }
+
         $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();    // Mengambil data detail peminjaman berdasarkan id peminjaman
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
         $users = User::where('id', $peminjaman->id_user)->first();  // Mengambil data user berdasarkan id user
@@ -259,31 +279,30 @@ class PeminjamanController extends Controller
 
         $status = $request->status; // Menambahkan data status dari form
         if ($status == 'Dikembalikan') {    // Jika status peminjaman dikembalikan
-            $peminjaman->status = $status;  // Menambahkan data status dari form
-            $peminjaman->tgl_kembali = date('Y-m-d');   // Menambahkan data tgl_kembali dari form
-            $peminjaman->save();    // Menyimpan data peminjaman
+            $peminjaman->status = $status;  // Update status
+            $peminjaman->tgl_kembali = date('Y-m-d');   // Set tanggal kembali
+            $peminjaman->save();
 
-            $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();   // Mengambil data detail peminjaman berdasarkan id peminjaman
-            $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
+            $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get();
+            $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();
 
-            $kondisi_barang = $request->kondisi;    // Menambahkan data kondisi dari form
-            foreach ($barang as $brg) { // Looping data barang
-                if (isset($kondisi_barang[$brg->id_barang])) {  // Jika kondisi barang ada
-                    $brg->kondisi = $kondisi_barang[$brg->id_barang];   // Menambahkan data kondisi dari form
-                    if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang') {   // Jika kondisi barang rusak atau hilang
-                        $brg->status_barang = 'Tidak Tersedia'; // Menambahkan data status_barang dari form
-                    } else {
-                        $brg->status_barang = 'Tersedia';
-                    }
-                    $brg->save();
+            // Ambil data kondisi barang dari form
+            $kondisi_barang = $request->input('kondisi', []);
+
+            foreach ($barang as $brg) {
+            // Cek apakah ada input kondisi untuk barang ini
+            if (array_key_exists($brg->id_barang, $kondisi_barang)) {
+                $brg->kondisi = $kondisi_barang[$brg->id_barang];
+                if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang') {
+                $brg->status_barang = 'Tidak Tersedia';
+                } else {
+                $brg->status_barang = 'Tersedia';
+                }
+                if (!$brg->save()) {
+                return redirect()->back()
+                    ->with('error', 'Data peminjaman gagal diubah.');
                 }
             }
-
-            foreach ($barang as $brg) { // Looping data barang
-                if (!$brg->save()) {
-                    return redirect()->back()
-                        ->with('error', 'Data peminjaman gagal diubah.');
-                }
             }
 
             $peminjam = User::find($peminjaman->id_user); // Mengambil data peminjam berdasarkan id user
@@ -305,7 +324,7 @@ class PeminjamanController extends Controller
                         $totalHargaSetelahPenyusutan += $hargaSekarang; // Menjumlahkan harga barang
                     }
 
-                    $diffDays = Carbon::parse($peminjaman->tgl_kembali) 
+                    $diffDays = Carbon::parse($peminjaman->tgl_kembali)
                         ->diffInDays(Carbon::parse($peminjaman->tgl_tenggat)); // Menghitung selisih hari antara tanggal kembali dan tenggat
 
                     $jumlahTagihan = round(($totalHargaSetelahPenyusutan * 0.05) * $diffDays, 0); // Menghitung jumlah tagihan setelah penyusutan dan mengambil 5% dikalikan hari terlambat
@@ -319,16 +338,16 @@ class PeminjamanController extends Controller
                 }
             }
 
-            return redirect()->route('peminjaman.index')
+            return redirect()->route('peminjaman.pengembalian')
                 ->with('success', 'Data peminjaman berhasil diubah.');
         } elseif ($status == 'Dipinjam') { // Jika status peminjaman disetujui
             $peminjaman->status = $status;  // Menambahkan data status dari form
             $peminjaman->save();    // Menyimpan data peminjaman
 
-            return redirect()->route('peminjaman.listPerizinan')
+            return redirect()->route('peminjaman.pengembalian')
                 ->with('success', 'Data peminjaman berhasil diubah.');
         } else {
-            return redirect()->back()
+            return redirect()->route('peminjaman.pengembalian')
                 ->with('error', 'Status peminjaman tidak valid.');
         }
     }
@@ -430,6 +449,7 @@ class PeminjamanController extends Controller
         $sheet->setCellValue('I3', 'Persetujuan Pimpinan');
         $sheet->setCellValue('J3', 'Tanggal Pengembalian');
         $sheet->setCellValue('K3', 'Kondisi Barang');
+        $sheet->setCellValue('L3', 'Denda Keterlambatan');
 
         // Menentukan gaya untuk header tabel (warna, font, rata tengah)
         $headerStyle = [
@@ -460,7 +480,12 @@ class PeminjamanController extends Controller
             $sheet->setCellValue('G' . $row, $item->id_barang); // Kode barang
             $sheet->setCellValue('H' . $row, $item->harga_barang); // Harga barang
             $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0.00_-'); // Format cell as Rupiah
-            $sheet->setCellValue('I' . $row, $item->status); // Status persetujuan
+            if (strtotime($item->tgl_kembali) > strtotime($item->tgl_tenggat)) {
+                $sheet->setCellValue('I' . $row, 'Terlambat Dikembalikan');
+                $sheet->getStyle('I' . $row)->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED); // Set font color to red if overdue
+            } else {
+                $sheet->setCellValue('I' . $row, $item->status); // Status persetujuan
+            }
             // Tanggal pengembalian (jika ada), jika tidak ada ditampilkan '-'
             if ($item->tgl_kembali != null) {
                 $sheet->setCellValue('J' . $row, $item->tgl_kembali);
@@ -468,6 +493,30 @@ class PeminjamanController extends Controller
                 $sheet->setCellValue('J' . $row, '-');
             }
             $sheet->setCellValue('K' . $row, $item->kondisi); // Kondisi barang
+
+            // Tambahkan kolom denda jika peminjaman dikembalikan terlambat
+            $denda = '-';
+            if (
+                !empty($item->tgl_kembali) &&
+                !empty($item->tgl_tenggat) &&
+                strtotime($item->tgl_kembali) > strtotime($item->tgl_tenggat)
+            ) {
+                // Coba ambil denda dari properti jika ada, atau hitung manual jika tidak ada
+                if (isset($item->denda)) {
+                    $denda = $item->denda;
+                } elseif (class_exists('\App\Models\m_tagihan')) {
+                    // Cek apakah ada tagihan denda untuk peminjaman ini
+                    $tagihan = \App\Models\m_tagihan::where('id_peminjaman', $item->id_peminjaman)
+                        ->first();
+                    if ($tagihan) {
+                        $denda = $tagihan->jumlah_tagihan;
+                    }
+                }
+            }
+            $sheet->setCellValue('L' . $row, is_numeric($denda) ? $denda : '-');
+            if (is_numeric($denda)) {
+                $sheet->getStyle('L' . $row)->getNumberFormat()->setFormatCode('"Rp"#,##0.00_-');
+            }
 
             $no++; // Menambah nomor urut
             $row++; // Pindah ke baris berikutnya
@@ -539,7 +588,7 @@ class PeminjamanController extends Controller
         $peminjaman = $this->m_peminjaman->getPeminjamanById($id); // Mengambil data peminjaman berdasarkan id
         $detailPeminjaman = ModelDetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)->get(); // Mengambil data detail peminjaman berdasarkan id peminjaman
         $barang = Inventaris::whereIn('id_barang', $detailPeminjaman->pluck('id_barang'))->get();   // Mengambil data barang berdasarkan id barang
-        $nama_peminjam = User::where('id', $peminjaman->id_user)->first()->name;    // Mengambil data user berdasarkan id user
+        $peminjam = User::where('id', $peminjaman->id_user)->first();    // Mengambil data user berdasarkan id user
 
 
         if (!$peminjaman) { // Jika data peminjaman tidak ditem
@@ -622,7 +671,7 @@ class PeminjamanController extends Controller
         $table = $section->addTable('DetailPeminjamanTable');
         $table->addRow();
         $table->addCell(3000)->addText('Nama Peminjam', ['bold' => true]);
-        $table->addCell(6000)->addText($nama_peminjam);
+        $table->addCell(6000)->addText($peminjam->name);
 
         $table = $section->addTable('DetailPeminjamanTable');
         $table->addRow();
@@ -645,7 +694,7 @@ class PeminjamanController extends Controller
 
         $table->addRow();
         $table->addCell(3000)->addText('Status', ['bold' => true]);
-        if($isLate) { // Jika peminjaman terlambat
+        if ($isLate) { // Jika peminjaman terlambat
             $table->addCell(6000)->addText('Dikembalikan - Terlambat', ['color' => 'FF0000']); // Menambahkan warna merah
         } else {
             $table->addCell(6000)->addText($peminjaman->status);
@@ -701,7 +750,7 @@ class PeminjamanController extends Controller
         // Tambahkan catatan di halaman baru
         $section->addPageBreak(); // Memulai halaman baru
         $section->addText('Catatan:', ['name' => 'Arial', 'size' => 10, 'bold' => true]);
-        if($isLate) { // Jika peminjaman terlambat
+        if ($isLate) { // Jika peminjaman terlambat
             $section->addListItem(
                 'Silahkan bayar denda keterlambatan pada menu Tagihan Denda.',
                 0,
@@ -781,7 +830,17 @@ class PeminjamanController extends Controller
 
         // Peminjam
         $cell3 = $table->addCell(4000);
-        $cell3->addText($peminjaman->user->name . ', ', ['name' => 'Arial', 'size' => 10]);
+        if ($peminjam->role == 'partnership') { // Jika peminjam adalah partnership
+            $penanggungJawab = $this->m_penanggung_jawab->getPJByPeminjaman($id); // Mengambil data penanggung jawab
+            if ($penanggungJawab) { // Jika data penanggung jawab tidak ditemukan
+                $cell3->addText($penanggungJawab->nama . ', ', ['name' => 'Arial', 'size' => 10]);
+            } else {
+                return redirect()->back()
+                        ->with('error', 'Data penanggung jawab tidak ditemukan.');
+            }
+        } else {
+            $cell3->addText($peminjam->name . ', ', ['name' => 'Arial', 'size' => 10]);
+        }
         $cell3->addTextBreak(3); // Space for signature
         $cell3->addText("__________________", ['name' => 'Arial', 'size' => 10]);
 

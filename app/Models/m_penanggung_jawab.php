@@ -26,6 +26,11 @@ class m_penanggung_jawab extends Model
 
     public function getPJByPeminjaman($id_peminjaman)
     {
-        return $this->where('id_peminjaman', $id_peminjaman)->get();
+        $data = $this->where('id_peminjaman', $id_peminjaman)->get();
+        if ($data->isEmpty()) {
+            return null; // Atau bisa mengembalikan array kosong jika tidak ada data
+        }
+        dd($data);
+        return $data;
     }
 }

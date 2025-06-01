@@ -129,38 +129,69 @@ class LaporanKerusakan extends Model
 
     public function laporanKerusakanByBulan($bulan)
     {
-        $data = DB::table('laporan_kerusakan')
-            ->join('tagihan_kerusakan', 'laporan_kerusakan.id', '=', 'tagihan_kerusakan.id_laporan_kerusakan')
-            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
-            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'peminjaman.*', 'users.*', 'kategori_barang.*', 'laporan_kerusakan.created_at as created_at_laporan', 'tagihan_kerusakan.*', 'tagihan_kerusakan.status as status_pembayaran')
-            ->whereMonth('laporan_kerusakan.created_at', $bulan)
+        $data = self::with([
+                'detailPeminjaman.barang.kategoriBarang',
+                'detailPeminjaman.peminjaman.user',
+                'foto_kerusakan',
+                'tagihanKerusakan'
+            ])
+            ->whereMonth('created_at', $bulan)
             ->get();
-        if (count($data) == 0) {
+
+        // if data not found
+        if ($data->isEmpty()) {
             return false;
         }
+
+        $data->transform(function ($item) {
+            // Flatten nested relationships for easier access
+            $item->id_laporan_kerusakan = $item->id;
+            $item->nama_peminjam = optional($item->detailPeminjaman->peminjaman->user)->name ?? null;
+            $item->nama_barang = optional($item->detailPeminjaman->barang)->nama_barang ?? null;
+            $item->kategori_barang = optional($item->detailPeminjaman->barang->kategoriBarang)->nama_kategori ?? null;
+            $item->deskripsi_kerusakan = $item->deskripsi_kerusakan ?? null;
+            $item->tanggal_laporan = $item->created_at ? $item->created_at->format('Y-m-d') : null;
+            $item->status_barang = optional($item->detailPeminjaman->barang)->status_barang ?? null;
+            $item->biaya_ganti_rugi = optional($item->tagihanKerusakan)->total_tagihan ?? null;
+            $item->status_pembayaran = optional($item->tagihanKerusakan)->status ?? null;
+            return $item;
+        });
+
         return $data;
+    }
+
+    // Relationship to TagihanKerusakan
+    public function tagihanKerusakan()
+    {
+        return $this->hasOne(TagihanKerusakan::class, 'id_laporan_kerusakan');
     }
 
     public function laporanKerusakanByTahun($tahun)
     {
-        $data = DB::table('laporan_kerusakan')
-            ->join('tagihan_kerusakan', 'laporan_kerusakan.id', '=', 'tagihan_kerusakan.id_laporan_kerusakan')
-            ->join('detail_peminjaman', 'laporan_kerusakan.id_detail_peminjaman', '=', 'detail_peminjaman.id')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
-            ->select('laporan_kerusakan.*', 'detail_peminjaman.*', 'barang.*', 'peminjaman.*', 'users.*', 'kategori_barang.*', 'laporan_kerusakan.created_at as created_at_laporan', 'tagihan_kerusakan.*', 'tagihan_kerusakan.status as status_pembayaran')
-            ->whereYear('laporan_kerusakan.created_at', $tahun)
+        $data = self::with([
+                'detailPeminjaman.barang.kategoriBarang',
+                'detailPeminjaman.peminjaman.user',
+                'foto_kerusakan',
+                'tagihanKerusakan'
+            ])
+            ->whereYear('created_at', $tahun)
             ->get();
+
         // if data not found
-        if (count($data) == 0) {
+        if ($data->isEmpty()) {
             return false;
         }
+
+        $data->transform(function ($item) {
+            // Flatten nested relationships for easier access
+            $item->nama_barang = optional($item->detailPeminjaman->barang)->nama_barang ?? null;
+            $item->nama_kategori = optional($item->detailPeminjaman->barang->kategoriBarang)->nama_kategori ?? null;
+            $item->nama_peminjam = optional($item->detailPeminjaman->peminjaman->user)->name ?? null;
+            $item->foto_kerusakan = $item->foto_kerusakan ?? [];
+            $item->tagihan = $item->tagihanKerusakan ?? null;
+            return $item;
+        });
+
         return $data;
     }
 }

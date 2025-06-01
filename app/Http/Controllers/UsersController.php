@@ -275,6 +275,20 @@ class UsersController extends Controller
     {
         $hasTDenda = $this->hasTagihan($this->authUser->id); // Mengecek apakah user memiliki tagihan
         $hasTKerusakan = $this->m_tagihan_kerusakan->userHasTagihan($this->authUser->id); // Mengecek apakah user memiliki tagihan kerusakan
+        $hasPeminjaman = $this->m_peminjaman
+            ->where('id_user', $this->authUser->id)
+            ->where('status', 'Dipinjam')
+            ->first(); // Mengecek apakah user memiliki peminjaman yang belum dikembalikan
+        $hasPengajuan = $this->m_pengajuan
+            ->where('id_user', $this->authUser->id)
+            ->where('status_pengajuan', 'Pending')
+            ->first(); // Mengecek apakah user memiliki pengajuan peminjaman yang sedang pending
+        if ($hasPeminjaman) { // Jika ada peminjaman yang sedang dibooking
+            return redirect()->back()->with('error', 'Anda tidak dapat mengajukan peminjaman karena masih memiliki peminjaman yang belum dikembalikan.'); // Tampilkan pesan error
+        }
+        if ($hasPengajuan) { // Jika ada pengajuan peminjaman yang sedang pending
+            return redirect()->back()->with('error', 'Anda tidak dapat mengajukan peminjaman karena masih memiliki pengajuan peminjaman yang sedang pending.'); // Tampilkan pesan error
+        }
 
         if ($hasTDenda || $hasTKerusakan) { // Jika ada tagihan
             return redirect()->back()->with('error', 'Anda tidak dapat mengajukan peminjaman karena memiliki tagihan yang belum dibayar.'); // Jika ada tagihan, tampilkan pesan error
@@ -415,6 +429,14 @@ class UsersController extends Controller
                 'id_pengajuan' => $pengajuanPeminjaman->id_pengajuan, // Mengambil id pengajuan peminjaman
                 'id_barang' => $item, // Mengambil id barang
             ]);
+        }
+
+        foreach ($request->barang as $item) {
+            $barang = $this->m_barang->find($item);
+            if ($barang) {
+                $barang->status_barang = 'Dibooking';
+                $barang->save();
+            }
         }
 
         // Mengirim email notifikasi pengajuan ke admin inventaris

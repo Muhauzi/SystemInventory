@@ -44,13 +44,9 @@ class M_detail_pengajuan extends Model
         return $this->where('id_barang', $id)->with('barang')->first();
     }
 
-    public function isBooked($id_barang)
+    public function bookedBarang()
     {
-        return $this->where('id_barang', $id_barang)
-        ->whereHas('pengajuan', function ($query) {
-            $query->where('status_pengajuan', 'Pending');
-        })
-        ->exists();
+        return self::pluck('id_barang');
     }
     
 

@@ -110,7 +110,10 @@
                                                 <i class="ri-pencil-line text-white"></i>
                                             </button>
                                         </a>
-                                        @if (!in_array($item->id_barang, $isBorrowed->pluck('id_barang')->toArray()) && $item->status_barang != 'Dibooking')
+                                        @if (
+                                            !in_array($item->id_barang, $isBorrowed->pluck('id_barang')->toArray()) &&
+                                            !$isBooked->contains($item->id_barang)
+                                        )
                                         <form id="delete-form-{{ $item->id_barang }}"
                                             action="{{ route('inventaris.delete', $item->id_barang) }}"
                                             method="POST" style="display:inline;">

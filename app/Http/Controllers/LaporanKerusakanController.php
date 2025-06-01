@@ -282,7 +282,21 @@ class LaporanKerusakanController extends Controller
         }
         $this->laporanExcel($laporan_kerusakan);
 
-        return response()->download(storage_path('app/public/laporan_kerusakan.xlsx'));
+        // Tentukan nama file berdasarkan filter waktu
+        $filename = 'Laporan Kerusakan dan Kehilangan.xlsx';
+        if ($request->has('jangka_waktu')) {
+            $jangka_waktu = $request->get('jangka_waktu');
+            if ($jangka_waktu == '1') {
+            $tahun = date('Y');
+            $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
+            } elseif ($jangka_waktu == '2' && $request->has('bulan')) {
+            $bulan = $request->get('bulan');
+            $tahun = date('Y');
+            $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
+            $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
+            }
+        }
+        return response()->download(storage_path('app/public/' . $filename));
     }
 
     public function laporanExcel($data)
@@ -297,7 +311,7 @@ class LaporanKerusakanController extends Controller
         $sheet->setCellValue('E1', 'Deskripsi Kerusakan');
         $sheet->setCellValue('F1', 'Tanggal Laporan');
         $sheet->setCellValue('G1', 'Status');
-        $sheet->setCellValue('H1', 'Biaya Perbaikan');
+        $sheet->setCellValue('H1', 'Biaya Ganti Rugi');
         $sheet->setCellValue('I1', 'Status Pembayaran');
 
         // Set header style
@@ -329,20 +343,24 @@ class LaporanKerusakanController extends Controller
 
         $column = 2;
         foreach ($data as $laporan) {
-            $sheet->setCellValue('A' . $column, $laporan->id);
-            $sheet->setCellValue('B' . $column, $laporan->name);
+            $sheet->setCellValue('A' . $column, $laporan->id_laporan_kerusakan);
+            $sheet->setCellValue('B' . $column, $laporan->nama_peminjam);
             $sheet->setCellValue('C' . $column, $laporan->nama_barang);
-            $sheet->setCellValue('D' . $column, $laporan->nama_kategori);
+            $sheet->setCellValue('D' . $column, $laporan->kategori_barang);
             $sheet->setCellValue('E' . $column, $laporan->deskripsi_kerusakan);
-            $sheet->setCellValue('F' . $column, $laporan->created_at_laporan);
-            if ($laporan->kondisi == 'Baik') {
+            $sheet->setCellValue('F' . $column, $laporan->tanggal_laporan);
+            if ($laporan->status_barang == 'Baik') {
                 $sheet->setCellValue('G' . $column, 'Telah Diperbaiki');
-            } elseif ($laporan->kondisi == 'Dalam Perbaikan') {
+            } elseif ($laporan->status_barang == 'Dalam Perbaikan') {
                 $sheet->setCellValue('G' . $column, 'Dalam Perbaikan');
             } else {
                 $sheet->setCellValue('G' . $column, 'Belum Diperbaiki');
             }
-            $sheet->setCellValue('H' . $column, $laporan->total_tagihan);
+            if (!empty($laporan->biaya_ganti_rugi)) {
+                $sheet->setCellValue('H' . $column, 'Rp ' . number_format($laporan->biaya_ganti_rugi, 0, ',', '.'));
+            } else {
+                $sheet->setCellValue('H' . $column, 'Belum Ditentukan');
+            }
             if ($laporan->status_pembayaran == 'capture' || $laporan->status_pembayaran == 'settlement') {
                 $laporan->status_pembayaran = 'Lunas';
             } else {
@@ -359,7 +377,21 @@ class LaporanKerusakanController extends Controller
         }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $path = storage_path('app/public/laporan_kerusakan.xlsx');
+        // Tentukan nama file berdasarkan filter waktu
+        $filename = 'Laporan Kerusakan dan Kehilangan.xlsx';
+        if (request()->has('jangka_waktu')) {
+            $jangka_waktu = request()->get('jangka_waktu');
+            if ($jangka_waktu == '1') {
+            $tahun = date('Y');
+            $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
+            } elseif ($jangka_waktu == '2' && request()->has('bulan')) {
+            $bulan = request()->get('bulan');
+            $tahun = date('Y');
+            $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
+            $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
+            }
+        }
+        $path = storage_path('app/public/' . $filename);
         $writer->save($path);
     }
 }
