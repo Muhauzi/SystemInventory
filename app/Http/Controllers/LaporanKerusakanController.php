@@ -38,6 +38,9 @@ class LaporanKerusakanController extends Controller
     public function index()
     {
         $laporan_kerusakan   = $this->ModelLaporan->getKategoriDanBarang();
+
+        // Sort laporan_kerusakan by created_at descending
+        $laporan_kerusakan = $laporan_kerusakan->sortByDesc('created_at')->values();
         // dd( $laporan_kerusakan);
         $tagihan = TagihanKerusakan::all();
         return view('laporan.kerusakan.index', compact('laporan_kerusakan', 'tagihan'));
@@ -263,6 +266,20 @@ class LaporanKerusakanController extends Controller
         return view('laporan.kerusakan.unduh_laporan');
     }
 
+    public function getLaporanKerusakanFilter(Request $request)
+    {
+        $jangka_waktu = $request->jangka_waktu;
+        $laporan = [];
+
+        if ($jangka_waktu == '1' && $request->has('tahun')) {
+            $laporan = $this->ModelLaporan->laporanKerusakanByTahun($request->tahun);
+        } elseif ($jangka_waktu == '2' && $request->has('bulan')) {
+            $laporan = $this->ModelLaporan->laporanKerusakanByBulan($request->bulan);
+        }
+
+        return response()->json($laporan);
+    }
+
     public function downloadLaporanKerusakan(Request $request)
     {
         $jangka_waktu = $request->jangka_waktu;
@@ -276,7 +293,7 @@ class LaporanKerusakanController extends Controller
         } else {
             $laporan_kerusakan = $this->ModelLaporan->getBarangKategori();
         }
-        
+
         if (!$laporan_kerusakan) {
             return redirect()->back()->with('error', 'Data laporan kerusakan tidak ditemukan.');
         }
@@ -287,13 +304,13 @@ class LaporanKerusakanController extends Controller
         if ($request->has('jangka_waktu')) {
             $jangka_waktu = $request->get('jangka_waktu');
             if ($jangka_waktu == '1') {
-            $tahun = date('Y');
-            $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
+                $tahun = date('Y');
+                $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
             } elseif ($jangka_waktu == '2' && $request->has('bulan')) {
-            $bulan = $request->get('bulan');
-            $tahun = date('Y');
-            $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
-            $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
+                $bulan = $request->get('bulan');
+                $tahun = date('Y');
+                $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
+                $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
             }
         }
         return response()->download(storage_path('app/public/' . $filename));
@@ -382,13 +399,13 @@ class LaporanKerusakanController extends Controller
         if (request()->has('jangka_waktu')) {
             $jangka_waktu = request()->get('jangka_waktu');
             if ($jangka_waktu == '1') {
-            $tahun = date('Y');
-            $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
+                $tahun = date('Y');
+                $filename = 'Laporan Kerusakan dan Kehilangan ' . $tahun . '.xlsx';
             } elseif ($jangka_waktu == '2' && request()->has('bulan')) {
-            $bulan = request()->get('bulan');
-            $tahun = date('Y');
-            $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
-            $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
+                $bulan = request()->get('bulan');
+                $tahun = date('Y');
+                $namaBulan = date('F', mktime(0, 0, 0, $bulan, 10));
+                $filename = 'Laporan Kerusakan dan Kehilangan ' . $namaBulan . ' ' . $tahun . '.xlsx';
             }
         }
         $path = storage_path('app/public/' . $filename);

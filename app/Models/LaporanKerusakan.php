@@ -184,11 +184,15 @@ class LaporanKerusakan extends Model
 
         $data->transform(function ($item) {
             // Flatten nested relationships for easier access
-            $item->nama_barang = optional($item->detailPeminjaman->barang)->nama_barang ?? null;
-            $item->nama_kategori = optional($item->detailPeminjaman->barang->kategoriBarang)->nama_kategori ?? null;
+            $item->id_laporan_kerusakan = $item->id;
             $item->nama_peminjam = optional($item->detailPeminjaman->peminjaman->user)->name ?? null;
-            $item->foto_kerusakan = $item->foto_kerusakan ?? [];
-            $item->tagihan = $item->tagihanKerusakan ?? null;
+            $item->nama_barang = optional($item->detailPeminjaman->barang)->nama_barang ?? null;
+            $item->kategori_barang = optional($item->detailPeminjaman->barang->kategoriBarang)->nama_kategori ?? null;
+            $item->deskripsi_kerusakan = $item->deskripsi_kerusakan ?? null;
+            $item->tanggal_laporan = $item->created_at ? $item->created_at->format('Y-m-d') : null;
+            $item->status_barang = optional($item->detailPeminjaman->barang)->status_barang ?? null;
+            $item->biaya_ganti_rugi = optional($item->tagihanKerusakan)->total_tagihan ?? null;
+            $item->status_pembayaran = optional($item->tagihanKerusakan)->status ?? null;
             return $item;
         });
 

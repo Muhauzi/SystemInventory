@@ -216,7 +216,7 @@ class PeminjamanController extends Controller
     public function return(Request $request) // Menampilkan form edit peminjaman
     {
         $id = $request->id_peminjaman; // Mengambil data id dari form
-        
+
         if (!$id) { // Jika id tidak ada
             return redirect()->back()
                 ->with('error', 'ID peminjaman ' . $id . ' tidak ditemukan. ');
@@ -225,7 +225,7 @@ class PeminjamanController extends Controller
         if (!$peminjaman) { // Jika data peminjaman tidak ditemukan
             return redirect()->back()
                 ->with('error', 'Data peminjaman tidak ditemukan.');
-        } elseif ($peminjaman->status == 'Dikembalikan'){
+        } elseif ($peminjaman->status == 'Dikembalikan') {
             return redirect()->back()
                 ->with('error', 'Data peminjaman sudah dikembalikan.');
         }
@@ -290,19 +290,19 @@ class PeminjamanController extends Controller
             $kondisi_barang = $request->input('kondisi', []);
 
             foreach ($barang as $brg) {
-            // Cek apakah ada input kondisi untuk barang ini
-            if (array_key_exists($brg->id_barang, $kondisi_barang)) {
-                $brg->kondisi = $kondisi_barang[$brg->id_barang];
-                if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang') {
-                $brg->status_barang = 'Tidak Tersedia';
-                } else {
-                $brg->status_barang = 'Tersedia';
+                // Cek apakah ada input kondisi untuk barang ini
+                if (array_key_exists($brg->id_barang, $kondisi_barang)) {
+                    $brg->kondisi = $kondisi_barang[$brg->id_barang];
+                    if ($brg->kondisi == 'Rusak' || $brg->kondisi == 'Hilang') {
+                        $brg->status_barang = 'Tidak Tersedia';
+                    } else {
+                        $brg->status_barang = 'Tersedia';
+                    }
+                    if (!$brg->save()) {
+                        return redirect()->back()
+                            ->with('error', 'Data peminjaman gagal diubah.');
+                    }
                 }
-                if (!$brg->save()) {
-                return redirect()->back()
-                    ->with('error', 'Data peminjaman gagal diubah.');
-                }
-            }
             }
 
             $peminjam = User::find($peminjaman->id_user); // Mengambil data peminjam berdasarkan id user
@@ -363,6 +363,27 @@ class PeminjamanController extends Controller
     public function unduhLaporan()
     {
         return view('laporan.transaksi.unduh_laporan');
+    }
+
+    public function getLaporanTransaksiFilter(Request $request)
+    {
+        $jangka_waktu = $request->input('jangka_waktu');
+        $tahun = $request->input('tahun');
+        $bulan = $request->input('bulan');
+
+        $ModelPeminjaman = new ModelPeminjaman(); // Pastikan namespace model benar
+        $laporan = [];
+
+        if ($jangka_waktu == '1' && $tahun) {
+            // Panggil metode yang sama dengan yang digunakan untuk download
+            $laporan = $ModelPeminjaman->laporanPeminjamanByTahun($tahun);
+        } elseif ($jangka_waktu == '2' && $bulan) {
+            // Panggil metode yang sama dengan yang digunakan untuk download
+            $laporan = $ModelPeminjaman->laporanPeminjamanByBulan($bulan);
+        }
+
+        // Kembalikan data dalam format JSON
+        return response()->json($laporan);
     }
 
     public function unduhLaporanPeminjaman(Request $request)
@@ -563,20 +584,6 @@ class PeminjamanController extends Controller
 
         // Mengembalikan path file yang telah disimpan
         return $path;
-    }
-
-    public function updateBatasPeminjaman($id)
-    {
-        $batasPeminjaman = BatasPeminjaman::find($id); // Mengambil data batas peminjaman berdasarkan
-        if (!$batasPeminjaman) { // Jika data batas peminjaman tidak ditemukan
-            return redirect()->back()
-                ->with('error', 'Data batas peminjaman tidak ditemukan.');
-        }
-
-        $batasPeminjaman->update(['batas_nominal' => request('batas_nominal')]); // Mengupdate data batas peminjaman
-
-        return redirect()->back()
-            ->with('success', 'Data batas peminjaman berhasil diubah.'); // Redirect ke route peminjaman.index
     }
 
     public function buktiPinjam($id) // Membuat bukti peminjaman 
@@ -836,7 +843,7 @@ class PeminjamanController extends Controller
                 $cell3->addText($penanggungJawab->nama . ', ', ['name' => 'Arial', 'size' => 10]);
             } else {
                 return redirect()->back()
-                        ->with('error', 'Data penanggung jawab tidak ditemukan.');
+                    ->with('error', 'Data penanggung jawab tidak ditemukan.');
             }
         } else {
             $cell3->addText($peminjam->name . ', ', ['name' => 'Arial', 'size' => 10]);

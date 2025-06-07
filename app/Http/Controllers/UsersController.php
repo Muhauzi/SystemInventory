@@ -676,22 +676,28 @@ class UsersController extends Controller
             // Coba cari ke tabel denda dulu
             $denda = $this->m_tagihan->getTagihanById($orderId);
             $kerusakan = TagihanKerusakan::where('id', $orderId)->first();
-    
+
+            $updated = false;
+
             if ($denda) {
                 if (in_array($denda->status_pembayaran, ['settlement', 'capture'])) {
                     return response()->json('Payment has been already processed');
                 }
-    
                 $denda->status_pembayaran = $transactionStatus;
                 $denda->save();
-            } elseif ($kerusakan) {
+                $updated = true;
+            }
+
+            if ($kerusakan) {
                 if (in_array($kerusakan->status, ['settlement', 'capture'])) {
                     return response()->json('Payment has been already processed');
                 }
-    
                 $kerusakan->status = $transactionStatus;
                 $kerusakan->save();
-            } else {
+                $updated = true;
+            }
+
+            if (!$updated) {
                 return response()->json('Order ID not found');
             }
     

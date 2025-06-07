@@ -134,35 +134,50 @@ class Peminjaman extends Model
     
     public function laporanPeminjamanByTahun($tahun)
     {
-        $data = DB::table('peminjaman')
-            ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
-            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*', 'users.name', 'users.email', 'users.id', 'kategori_barang.*')
-            ->whereYear('detail_peminjaman.created_at', $tahun)
+        $data = $this->with([
+                'detailPeminjaman.barang.kategoriBarang',
+                'user',
+                'tagihanDenda'
+            ])
+            ->whereHas('detailPeminjaman', function ($query) use ($tahun) {
+                $query->whereYear('created_at', $tahun);
+            })
             ->get();
 
         if ($data->isEmpty()) {
             return false;
         }
+
+        // Tambahkan denda tagihan jika ada
+        $data = $data->map(function ($peminjaman) {
+            $peminjaman->denda_tagihan = $peminjaman->tagihanDenda->jumlah_tagihan ?? 0;
+            return $peminjaman;
+        });
 
         return $data;
     }
 
     public function laporanPeminjamanByBulan($bulan)
     {
-        $data = DB::table('peminjaman')
-            ->join('detail_peminjaman', 'peminjaman.id_peminjaman', '=', 'detail_peminjaman.id_peminjaman')
-            ->join('barang', 'detail_peminjaman.id_barang', '=', 'barang.id_barang')
-            ->join('users', 'peminjaman.id_user', '=', 'users.id')
-            ->join('kategori_barang', 'barang.id_kategori', '=', 'kategori_barang.id_kategori')
-            ->select('peminjaman.*', 'detail_peminjaman.*', 'barang.*', 'users.name', 'users.email', 'users.id', 'kategori_barang.*')
-            ->whereMonth('detail_peminjaman.created_at', $bulan)
+        $data = $this->with([
+                'detailPeminjaman.barang.kategoriBarang',
+                'user',
+                'tagihanDenda'
+            ])
+            ->whereHas('detailPeminjaman', function ($query) use ($bulan) {
+                $query->whereMonth('created_at', $bulan);
+            })
             ->get();
+
         if ($data->isEmpty()) {
             return false;
         }
+
+        // Tambahkan denda tagihan jika ada
+        $data = $data->map(function ($peminjaman) {
+            $peminjaman->denda_tagihan = $peminjaman->tagihanDenda->jumlah_tagihan ?? 0;
+            return $peminjaman;
+        });
 
         return $data;
     }

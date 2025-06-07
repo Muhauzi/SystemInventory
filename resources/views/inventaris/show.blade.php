@@ -114,7 +114,7 @@
 
                     </table>
 
-                    @if($data_peminjam != null && $data_peminjam->count() > 0 && auth()->user()->role == 'admin' && $inventaris->status_barang == 'Dipinjam')
+                    @if($data_peminjam != null && $data_peminjam->count() > 0 && $inventaris->status_barang == 'Dipinjam')
                         <!-- Data Peminjam Table -->
                         <h3>Data Peminjam</h3>
                         <table class="table table-bordered">
@@ -142,8 +142,17 @@
                                 <td>{{ $data_peminjam->first()->tgl_pinjam ?? 'Tidak ada peminjaman' }}</td>
                             </tr>
                             <tr>
-                                <th>Tanggal Kembali</th>
-                                <td>{{ $data_peminjam->first()->tgl_kembali ?? 'Belum dikembalikan' }}</td>
+                                <th>Tanggal Tenggat Kembali</th>
+                                <td>
+                                    {{ $data_peminjam->first()->tgl_tenggat ?? 'Tidak ada peminjaman' }}
+                                    @if (
+                                        isset($data_peminjam->first()->tgl_tenggat) &&
+                                        \Carbon\Carbon::parse($data_peminjam->first()->tgl_tenggat)->lt(\Carbon\Carbon::today()) &&
+                                        $data_peminjam->first()->status == 'Dipinjam'
+                                    )
+                                        <span class="badge bg-danger ms-2">Terlambat</span>
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <th>Status Peminjaman</th>
